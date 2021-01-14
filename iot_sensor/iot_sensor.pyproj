@@ -2,16 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>d32cc1c5-59d5-4a00-ae53-074ec39cd0ac</ProjectGuid>
+    <ProjectGuid>b41f4906-ce80-47ea-b69f-747fd0cac496</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>iot_sensor.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>iot_hardware</Name>
-    <RootNamespace>iot_hardware</RootNamespace>
+    <Name>iot_sensor</Name>
+    <RootNamespace>iot_sensor</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,20 +21,18 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="adafruit_ads1x15\ads1115.py" />
-    <Compile Include="adafruit_ads1x15\analog_in.py" />
-    <Compile Include="board.py" />
-    <Compile Include="busio.py" />
-    <Compile Include="iot_hardware_digital_input.py" />
-    <Compile Include="iot_hardware_handler.py" />
-    <Compile Include="smbus2.py" />
+    <Compile Include="iot_sensor.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="adafruit_ads1x15\" />
+    <Content Include=".pylintrc" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include=".pylintrc" />
+    <ProjectReference Include="..\iot_hardware\iot_hardware.pyproj">
+      <Name>iot_hardware</Name>
+      <Project>{d32cc1c5-59d5-4a00-ae53-074ec39cd0ac}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
