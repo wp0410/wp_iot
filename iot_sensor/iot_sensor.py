@@ -112,6 +112,99 @@ class IotSensorConfig:
         self._config_dict = config_dict
         self._check_config_elem('sensor_id', str, [1])
         self._check_config_elem('sensor_type', str, [1])
+        self._check_config_elem('topics', dict, ['input_prefix', 'output_prefix'])
+        self._check_config_elem('sensor_hw', dict, ['id', 'channel'])
+
+    def _check_elem_int(self, elem_name: str, elem_value: int, constraints: list) -> bool:
+        """ Checks the constraints on a configuration element of type 'int'.
+
+        Parameters:
+            elem_name : str
+                Name of the configuration element.
+            elem_value : int
+                Value of the element.
+            constraints : list
+                List of value constraints: [min_value: int, max_value: int, optional].
+
+        Returns:
+            bool : constraints check result (True = OK).
+        """
+        # pylint: disable=no-self-use
+        if len(constraints) > 0 and elem_value < constraints[0]:
+            raise ValueError('Illegal value for int configuration element "{}": min value is {}'.format(
+                elem_name, constraints[0]))
+        if len(constraints) > 1 and elem_value > constraints[1]:
+            raise ValueError('Illegal value for int configuration element "{}": max value is {}'.format(
+                elem_name, constraints[1]))
+        return True
+
+    def _check_elem_str(self, elem_name: str, elem_value: str, constraints: list) -> bool:
+        """ Checks the constraints on a configuration element of type 'str'.
+
+        Parameters:
+            elem_name : str
+                Name of the configuration element.
+            elem_value : str
+                Value of the element.
+            constraints : list
+                List of value constraints: [min_length: int, max_length: int, optional].
+
+        Returns:
+            bool : constraints check result (True = OK).
+        """
+        # pylint: disable=no-self-use
+        if len(constraints) > 0 and len(elem_value) < constraints[0]:
+            raise ValueError('Illegal value for string configuration element "{}": min length is {}'.format(
+                elem_name, constraints[0]))
+        if len(constraints) > 1 and len(elem_value) > constraints[1]:
+            raise ValueError('Illegal value for string configuration element "{}": max length is {}'.format(
+                elem_name, constraints[1]))
+        return True
+
+    def _check_elem_list(self, elem_name: str, elem_value: list, constraints: list) -> bool:
+        """ Checks the constraints on a configuration element of type 'list'.
+
+        Parameters:
+            elem_name : str
+                Name of the configuration element.
+            elem_value : list
+                Value of the element.
+            constraints : list
+                List of value constraints: [min_length: int, max_length: int, optional].
+
+        Returns:
+            bool : constraints check result (True = OK).
+        """
+        # pylint: disable=no-self-use
+        if len(constraints) > 0 and len(elem_value) < constraints[0]:
+            raise ValueError('Illegal value for list configuration element "{}": min length is {}'.format(
+                elem_name, constraints[0]))
+        if len(constraints) > 1 and len(elem_value) > constraints[1]:
+            raise ValueError('Illegal value for list configuration element "{}": max length is {}'.format(
+                elem_name, constraints[1]))
+        return True
+
+    def _check_elem_dict(self, elem_name: str, elem_value: dict, constraints: list) -> bool:
+        """ Checks the constraints on a configuration element of type 'dict'.
+
+        Parameters:
+            elem_name : str
+                Name of the configuration element.
+            elem_value : dict
+                Value of the element.
+            constraints : list
+                List of value constraints (names of mandatory elements).
+
+        Returns:
+            bool : constraints check result (True = OK).
+        """
+        # pylint: disable=no-self-use
+        for mandatory_elem in constraints:
+            if mandatory_elem not in elem_value:
+                raise ValueError(
+                    'Illegal value for dict configuration element "{}": missing sub-element "{}"'.format(
+                        elem_name, mandatory_elem))
+        return True
 
     def _check_config_elem(self, elem_name: str, type_: type, constraints = None) -> bool:
         """ Checks the dictionary for a mandatory element, its type, and optionally its value range.
@@ -123,32 +216,26 @@ class IotSensorConfig:
                 Type the value of the element in the dictionary must be instance of.
             constraints : list
                 Array containing 1 or 2 elements for value range checking:
-                    Element type is str: [min_length: int, max_length: int, optional]
-                    Element type is int: [min_value: int, max_value: int, optional]
+                    Element type is str:  [min_length: int, max_length: int, optional]
+                    Element type is int:  [min_value: int, max_value: int, optional]
+                    Element type is list: [min_length: int, max_length: int, optional]
+                    Element type is dict: all constraints in dict
         """
         if elem_name not in self._config_dict:
             raise KeyError('Missing configuration element: "{}"'.format(elem_name))
-        elem = self._config_dict[elem_name]
-        if not isinstance(elem, type_) :
-            raise TypeError('Illegal type for configuration element "{}": "{}"'.format(elem_name, type(elem)))
+        elem_value = self._config_dict[elem_name]
+        if not isinstance(elem_value, type_) :
+            raise TypeError('Illegal type for configuration element "{}": "{}"'.format(elem_name, type(elem_value)))
         if constraints is None:
             return True
         if type_ is str:
-            if len(constraints) > 0 and len(elem) < constraints[0]:
-                raise ValueError('Illegal value for configuration element "{}": min length is {}'.format(
-                    elem_name, constraints[0]))
-            if len(constraints) > 1 and len(elem) > constraints[1]:
-                raise ValueError('Illegal value for configuration element "{}": max length is {}'.format(
-                    elem_name, constraints[1]))
-            return True
+            return self._check_elem_str(elem_name, elem_value, constraints)
         if type_ is int:
-            if len(constraints) > 0 and elem < constraints[0]:
-                raise ValueError('Illegal value for configuration element "{}": min value is {}'.format(
-                    elem_name, constraints[0]))
-            if len(constraints) > 1 and elem > constraints[1]:
-                raise ValueError('Illegal value for configuration element "{}": max value is {}'.format(
-                    elem_name, constraints[1]))
-            return True
+            return self._check_elem_int(elem_name, elem_value, constraints)
+        if type_ is list:
+            return self._check_elem_list(elem_name, elem_value, constraints)
+        if type_ is dict:
+            return self._check_elem_dict(elem_name, elem_value, constraints)
         return True
 
     def __getitem__(self, config_key) -> Any:

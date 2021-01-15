@@ -83,6 +83,33 @@ class DigitalInputProbe(wp_queueing.IConvertToDict):
             'voltage': self.voltage
         }
 
+    def from_dict(self, msg_dict: dict) -> None:
+        """ Converts a dictionary into a DigtialInputProbe instance, if possible.
+
+        Parameters:
+            msg_dict : dict
+                Dictionary to be converted.
+        """
+        if not isinstance(msg_dict, dict):
+            raise TypeError('DigitalInputProbe.from_dict(): invalid parameter type "{}"'.format(type(msg_dict)))
+        mandatory_attr = ['class', 'device_type', 'device_id', 'probe_time', 'channel_no', 'value']
+        for attr in mandatory_attr:
+            if attr not in msg_dict:
+                raise ValueError('DigitalInputProbe.from_dict(): missing mandatory element "{}"'.format(attr))
+        if msg_dict['class'] != 'DigitalInputProbe':
+            raise ValueError('DigitalInputProbe.from_dict(): invalid dict class "{}"'.format(msg_dict['class']))
+        self.device_id = msg_dict['device_id']
+        self.device_type = msg_dict['device_type']
+        probe_time = msg_dict['probe_time']
+        if probe_time.find('.') < 0:
+            self.probe_time = datetime.strptime(probe_time, "%Y-%m-%d %H:%M:%S")
+        else:
+            self.probe_time = datetime.strptime(probe_time, "%Y-%m-%d %H:%M:%S.f")
+        self.channel_no = msg_dict['channel_no']
+        self.value = msg_dict['value']
+        if 'voltage' in msg_dict:
+            self.voltage = msg_dict['voltage']
+
 
 class DigitalInputHealth(wp_queueing.IConvertToDict):
     """ Data object to report the health status of a digital input device.
