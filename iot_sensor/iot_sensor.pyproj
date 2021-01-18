@@ -31,6 +31,11 @@
     <Content Include=".pylintrc" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\iot_base\iot_base.pyproj">
+      <Name>iot_base</Name>
+      <Project>{2e8c9ab2-c71d-455a-92c7-f7e2c43d484e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\iot_hardware\iot_hardware.pyproj">
       <Name>iot_hardware</Name>
       <Project>{d32cc1c5-59d5-4a00-ae53-074ec39cd0ac}</Project>

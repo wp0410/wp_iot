@@ -16,6 +16,7 @@ import inspect
 import logging
 import wp_queueing
 import wp_configuration
+import iot_handler
 import iot_hardware_digital_input as iot_hw
 
 
@@ -39,11 +40,12 @@ class IotHardwareConfig(wp_configuration.wp_configuration.DictConfigWrapper):
         self.mandatory_str('device_type', [6])
         self.mandatory_str('device_id', [6])
         self.mandatory_dict('topics', ['data_prefix', 'health_prefix'])
-        self.mandatory_int('polling_interval', [1])
+        self.optional_int('polling_interval', 1)
+        self.optional_int('health_interval_mult', 30)
 
 
 
-class DigitalInputHandler:
+class DigitalInputHandler(iot_handler.IotHandlerBase):
     """ Handler for a digital input hardware device (ADS1115).
 
     Attributes:
@@ -52,8 +54,6 @@ class DigitalInputHandler:
         _device_type : str
             Type of the digital input device. Currently allowed values:
                 "ADS1115"
-        _polling_interval : int
-            Interval (in seconds) for polling the digital input device.
         _mqtt_publish : wp_queueing.MQTTProducer
             Producer to publish the polled input values.
         _device : object
@@ -80,51 +80,18 @@ class DigitalInputHandler:
         self._logger.debug(mth_name)
         self._config = IotHardwareConfig(config_dict)
         self._device_type = config_dict['device_type']
-        self._polling_interval = config_dict['polling_interval']
         topic_prefixes = config_dict['topics']
         self._prefix_data = topic_prefixes['data_prefix']
         self._prefix_health = topic_prefixes['health_prefix']
+        super().__init__(config_dict['polling_interval'])
+        self._health_interval_mult = config_dict['health_interval_mult']
+        self._health_timer = self._health_interval_mult
 
         if self._device_type == 'ADS1115':
             self._device = iot_hw.DigitalInputADS1115(config_dict, logger)
         else:
             self._device = None
         self._mqtt_publish = mqtt_publish
-        self._tick_min = -1
-        self._tick_sec = -1
-        self._polling_timer = -1
-
-    def init_time(self, minutes, seconds) -> None:
-        """ Initializes the internal time information and the polling timer.
-
-        Parameters:
-            minutes : int
-                MIN part of current time.
-            seconds : int
-                SEC part of current time.
-        """
-        self._tick_min = minutes
-        self._tick_sec = seconds
-        tmin = int((self._tick_min * 60 + self._polling_interval) / self._polling_interval)
-        tmin *= int(self._polling_interval / 60)
-        tsec = 0
-        self._polling_timer = tmin * 60 + tsec - self._tick_min * 60 - self._tick_sec
-
-    def time_tick(self, num_sec = 1) -> None:
-        """ Reports a number of passed seconds to adjust the internal time information and the polling timer.
-
-        Parameters:
-            num_sec : int, optional, default = 1
-                Number of seconds passed since most recent time tick.
-        """
-        self._tick_sec += num_sec
-        self._polling_timer -= num_sec
-        if self._tick_sec >= 60:
-            self._tick_min += int(self._tick_sec / 60)
-            self._tick_sec %= 60
-        if self._polling_timer <= 0:
-            self._polling_timer = self._polling_interval
-            self._polling_timer_event()
 
     def _data_topic(self, probe: iot_hw.DigitalInputProbe) -> str:
         """ Constructs the MTTQ message topic for a MQTT message to be published to the broker.
@@ -139,6 +106,17 @@ class DigitalInputHandler:
 
     def _health_topic(self) -> str:
         return "{}/{}".format(self._prefix_health, self._device.device_id)
+
+    def polling_timer_event(self) -> None:
+        """ Indicates that the polling timer has expired and the underlying device must be probed.
+        """
+        super().polling_timer_event()
+        self._polling_timer_event()
+        self._health_timer -= 1
+        if self._health_timer <= 0:
+            self._health_timer_event()
+            self._health_timer = self._health_interval_mult
+
 
     def _polling_timer_event(self) -> None:
         """ Indicates that the polling timer has expired and the underlying device must be probed.

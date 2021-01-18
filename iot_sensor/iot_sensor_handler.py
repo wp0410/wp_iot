@@ -17,11 +17,12 @@ from datetime import datetime
 import logging
 import wp_queueing
 import wp_configuration
+import iot_handler
 import iot_hardware_digital_input as iot_hardware
 import iot_sensor
 
 
-class IotSensorConfig(wp_configuration.wp_configuration.DictConfigWrapper):
+class IotSensorConfig(wp_configuration.DictConfigWrapper):
     """ Class for validation of configuration setttings for a sensor handler and the associated
         sensor.
 
@@ -42,9 +43,10 @@ class IotSensorConfig(wp_configuration.wp_configuration.DictConfigWrapper):
         self.value_error(self.mandatory_str('sensor_type', [6]))
         self.value_error(self.mandatory_dict('hardware', ['id', 'channel']))
         self.value_error(self.mandatory_dict('topics', ['input_prefix', 'output_prefix']))
+        self.optional_int('polling_interval', 5)
 
 
-class IotSensorHandler:
+class IotSensorHandler(iot_handler.IotHandlerBase):
     """ Handler for an IOT sensor.
 
     Attributes:
@@ -92,6 +94,7 @@ class IotSensorHandler:
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         self._logger.debug(mth_name)
         self._config = IotSensorConfig(config_dict)
+        super().__init__(self._config['polling_interval'])
         self._sensor_id = self._config['sensor_id']
         self._sensor_type = self._config['sensor_type']
         topics = self._config['topics']
@@ -106,6 +109,13 @@ class IotSensorHandler:
 
         self._publisher = publisher
         self._consumer = consumer
+
+    def polling_timer_event(self):
+        """ Indicates that the polling timer has expired and the MQTT broker must be queried for new
+            messages.
+        """
+        super().polling_timer_event()
+        self._consumer.receive()
 
     def message(self, msg: wp_queueing.QueueMessage) -> None:
         """ Handle an incoming message containing a hardware probe.
