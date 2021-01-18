@@ -16,8 +16,32 @@ import inspect
 from datetime import datetime
 import logging
 import wp_queueing
+import wp_configuration
 import iot_hardware_digital_input as iot_hardware
 import iot_sensor
+
+
+class IotSensorConfig(wp_configuration.wp_configuration.DictConfigWrapper):
+    """ Class for validation of configuration setttings for a sensor handler and the associated
+        sensor.
+
+    Methods:
+        IotSensorConfig():
+            Constructor.
+    """
+    def __init__(self, config_dict: dict):
+        """ Constructor.
+
+        Parameters:
+            config_dict : dict
+                Dictionary containing the configuration settings for the sensor handler and the
+                associated sensor.
+        """
+        super().__init__(config_dict)
+        self.value_error(self.mandatory_str('sensor_id', [6]))
+        self.value_error(self.mandatory_str('sensor_type', [6]))
+        self.value_error(self.mandatory_dict('hardware', ['id', 'channel']))
+        self.value_error(self.mandatory_dict('topics', ['input_prefix', 'output_prefix']))
 
 
 class IotSensorHandler:
@@ -67,7 +91,7 @@ class IotSensorHandler:
         self._logger = logger
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         self._logger.debug(mth_name)
-        self._config = iot_sensor.IotSensorConfig(config_dict)
+        self._config = IotSensorConfig(config_dict)
         self._sensor_id = self._config['sensor_id']
         self._sensor_type = self._config['sensor_type']
         topics = self._config['topics']

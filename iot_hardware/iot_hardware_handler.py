@@ -15,7 +15,33 @@
 import inspect
 import logging
 import wp_queueing
+import wp_configuration
 import iot_hardware_digital_input as iot_hw
+
+
+class IotHardwareConfig(wp_configuration.wp_configuration.DictConfigWrapper):
+    """ Class for validation of configuration settings for a hardware handler and the associated
+        hardware element.
+
+    Methods:
+        IotSensorConfig():
+            Constructor.
+    """
+    def __init__(self, config_dict: dict):
+        """ Constructor.
+
+        Parameters:
+            config_dict : dict
+                Dictionary containing the configuration settings for the hardware handler and the
+                associated hardware.
+        """
+        super().__init__(config_dict)
+        self.mandatory_str('device_type', [6])
+        self.mandatory_str('device_id', [6])
+        self.mandatory_dict('topics', ['data_prefix', 'health_prefix'])
+        self.mandatory_int('polling_interval', [1])
+
+
 
 class DigitalInputHandler:
     """ Handler for a digital input hardware device (ADS1115).
@@ -52,21 +78,13 @@ class DigitalInputHandler:
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         self._logger = logger
         self._logger.debug(mth_name)
-        try:
-            config_elem = 'device_type'
-            self._device_type = config_dict[config_elem]
-            config_elem = 'polling_interval'
-            self._polling_interval = config_dict[config_elem]
-            config_elem = 'topics'
-            topic_prefixes = config_dict[config_elem]
-            config_elem = 'data_prefix'
-            self._prefix_data = topic_prefixes[config_elem]
-            config_elem = 'health_prefix'
-            self._prefix_health = topic_prefixes[config_elem]
-        except KeyError as key_except:
-            self._logger.error('%s: Exception "%s"', mth_name, str(key_except))
-            self._logger.error('%s: Missing configuration element: "%s"', mth_name, config_elem)
-            raise key_except
+        self._config = IotHardwareConfig(config_dict)
+        self._device_type = config_dict['device_type']
+        self._polling_interval = config_dict['polling_interval']
+        topic_prefixes = config_dict['topics']
+        self._prefix_data = topic_prefixes['data_prefix']
+        self._prefix_health = topic_prefixes['health_prefix']
+
         if self._device_type == 'ADS1115':
             self._device = iot_hw.DigitalInputADS1115(config_dict, logger)
         else:
