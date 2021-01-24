@@ -342,3 +342,6 @@ healthchecksdb
 /iot_hardware/smbus2.py
 /iot_hardware/busio.py
 /iot_hardware/board.py
+/build/lib
+/dist
+/wp_iot.egg-info

@@ -26,6 +26,9 @@
     <Compile Include="adafruit_ads1x15\analog_in.py" />
     <Compile Include="board.py" />
     <Compile Include="busio.py" />
+    <Compile Include="iot_hardware_agent.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="iot_hardware_digital_input.py" />
     <Compile Include="iot_hardware_handler.py" />
     <Compile Include="smbus2.py" />
@@ -36,13 +39,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".pylintrc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\iot_base\iot_base.pyproj">
-      <Name>iot_base</Name>
-      <Project>{2e8c9ab2-c71d-455a-92c7-f7e2c43d484e}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

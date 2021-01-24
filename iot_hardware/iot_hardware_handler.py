@@ -16,7 +16,7 @@ import inspect
 import logging
 import wp_queueing
 import wp_configuration
-import iot_handler
+import iot_base
 import iot_hardware_digital_input as iot_hw
 
 
@@ -45,7 +45,7 @@ class IotHardwareConfig(wp_configuration.wp_configuration.DictConfigWrapper):
 
 
 
-class DigitalInputHandler(iot_handler.IotHandlerBase):
+class DigitalInputHandler(iot_base.IotHandlerBase):
     """ Handler for a digital input hardware device (ADS1115).
 
     Attributes:

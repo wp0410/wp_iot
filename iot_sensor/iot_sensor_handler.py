@@ -17,8 +17,8 @@ from datetime import datetime
 import logging
 import wp_queueing
 import wp_configuration
-import iot_handler
-import iot_hardware_digital_input as iot_hardware
+import iot_base
+import iot_hardware
 import iot_sensor
 
 
@@ -46,7 +46,7 @@ class IotSensorConfig(wp_configuration.DictConfigWrapper):
         self.optional_int('polling_interval', 5)
 
 
-class IotSensorHandler(iot_handler.IotHandlerBase):
+class IotSensorHandler(iot_base.IotHandlerBase):
     """ Handler for an IOT sensor.
 
     Attributes:

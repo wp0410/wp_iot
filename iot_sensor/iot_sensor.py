@@ -16,7 +16,7 @@ import inspect
 from datetime import datetime
 import logging
 import wp_queueing
-import iot_hardware_digital_input as iot_hardware
+import iot_hardware
 
 
 class SensorMeasurement(wp_queueing.IConvertToDict):

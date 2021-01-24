@@ -2,15 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>b41f4906-ce80-47ea-b69f-747fd0cac496</ProjectGuid>
+    <ProjectGuid>e2c16a3d-fbac-49ae-aae5-b1629ead4d07</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>iot_sensor.py</StartupFile>
+    <StartupFile>iot_repository_hardware.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>iot_sensor</Name>
-    <RootNamespace>iot_sensor</RootNamespace>
+    <Name>iot_repository</Name>
+    <RootNamespace>iot_repository</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,14 +21,17 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="iot_sensor.py" />
-    <Compile Include="iot_sensor_handler.py">
+    <Compile Include="iot_repository_hardware.py" />
+    <Compile Include="iot_repository_sensor.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="__init__.py" />
+    <Compile Include="__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include=".pylintrc" />
+    <Content Include="iot.sl3" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
