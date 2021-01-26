@@ -42,7 +42,7 @@ class IotSensorConfig(wp_configuration.DictConfigWrapper):
         self.value_error(self.mandatory_str('sensor_id', [6]))
         self.value_error(self.mandatory_str('sensor_type', [6]))
         self.value_error(self.mandatory_dict('hardware', ['id', 'channel']))
-        self.value_error(self.mandatory_dict('topics', ['input_prefix', 'output_prefix']))
+        self.value_error(self.mandatory_dict('topics', ['input_prefix', 'data_prefix']))
         self.optional_int('polling_interval', 5)
 
 
@@ -100,7 +100,7 @@ class IotSensorHandler(iot_base.IotHandlerBase):
         topics = self._config['topics']
         hw_settings = self._config['hardware']
         self._input_topic = '{}/{}/{}'.format(topics['input_prefix'], hw_settings['id'], hw_settings['channel'])
-        self._output_topic = '{}/{}'.format(topics['output_prefix'], self._sensor_id)
+        self._output_topic = '{}/{}'.format(topics['data_prefix'], self._sensor_id)
 
         if self._sensor_type == 'KYES516':
             self._sensor = iot_sensor.IotSensorHumKYES516(config_dict, logger)

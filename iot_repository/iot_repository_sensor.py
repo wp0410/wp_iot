@@ -21,6 +21,9 @@ class IotSensor(wp_repository.RepositoryElement):
     Attributes:
         sensor_id : str
             Unique identification of the IOT sensor.
+        broker_id : str
+            Unique identification of the MQTT broker to be used to publish and subscribe to
+            messages.
         sensor_type : str
             Type of the sensor.
         hardware_id : str
@@ -39,6 +42,10 @@ class IotSensor(wp_repository.RepositoryElement):
         store_date : str
             Date and time when the object was stored in the database.
 
+    Properties:
+        store_date_str : str
+            Getter for the last change date and time as string.
+
     Methods:
         IotSensor()
             Constructor.
@@ -47,19 +54,21 @@ class IotSensor(wp_repository.RepositoryElement):
     _attribute_map = wp_repository.AttributeMap(
         "iot_sensor",
         [wp_repository.AttributeMapping(0, "sensor_id", "sensor_id", str, db_key = 1),
-         wp_repository.AttributeMapping(1, "sensor_type", "sensor_type", str),
-         wp_repository.AttributeMapping(2, "hardware_id", "hardware_id", str),
-         wp_repository.AttributeMapping(3, "hw_channel", "hw_channel", int),
-         wp_repository.AttributeMapping(4, "polling_interval", "polling_interval", int),
-         wp_repository.AttributeMapping(5, "topic_input", "topic_input", str),
-         wp_repository.AttributeMapping(6, "topic_data", "topic_data", str),
-         wp_repository.AttributeMapping(7, "topic_health", "topic_health", str),
-         wp_repository.AttributeMapping(8, "store_date", "store_date", datetime)])
+         wp_repository.AttributeMapping(1, "broker_id", "broker_id", str),
+         wp_repository.AttributeMapping(2, "sensor_type", "sensor_type", str),
+         wp_repository.AttributeMapping(3, "hardware_id", "hardware_id", str),
+         wp_repository.AttributeMapping(4, "hw_channel", "hw_channel", int),
+         wp_repository.AttributeMapping(5, "polling_interval", "polling_interval", int),
+         wp_repository.AttributeMapping(6, "topic_input", "topic_input", str),
+         wp_repository.AttributeMapping(7, "topic_data", "topic_data", str),
+         wp_repository.AttributeMapping(8, "topic_health", "topic_health", str),
+         wp_repository.AttributeMapping(9, "store_date", "store_date", datetime)])
 
     def __init__(self):
         """ Constructor. """
         super().__init__()
         self.sensor_id = ""
+        self.broker_id = ""
         self.sensor_type = ""
         self.hardware_id = ""
         self.hw_channel = 0
@@ -68,3 +77,12 @@ class IotSensor(wp_repository.RepositoryElement):
         self.topic_data = ""
         self.topic_health = ""
         self.store_date = datetime.now()
+
+    @property
+    def store_date_str(self) -> str:
+        """ Getter for the last change date and time as string.
+
+        Returns:
+            store_date converted to a string.
+        """
+        return self.store_date.strftime("%Y-%m-%d %H:%M:%S")

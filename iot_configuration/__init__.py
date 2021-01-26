@@ -12,6 +12,4 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
-from iot_repository_hardware import IotHardwareComponent
-from iot_repository_sensor import IotSensor
-from iot_repository_broker import IotMqttBroker
+from iot_configuration import IotConfiguration

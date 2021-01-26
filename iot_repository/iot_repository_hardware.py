@@ -21,6 +21,9 @@ class IotHardwareComponent(wp_repository.RepositoryElement):
     Attributes:
         hardware_id : str
             Unique identification of an IOT hardware component.
+        broker_id : str
+            Unique identification of the MQTT broker to be used to publish and subscribe to
+            messages.
         hardware_type : str
             Describes the type of hardware component, e.g. "ADS1115", "MCP23917".
         if_type : str
@@ -42,6 +45,10 @@ class IotHardwareComponent(wp_repository.RepositoryElement):
         store_date : datetime
             Date and time when the instance was stored in the database.
 
+    Properties:
+        store_date_str : str
+            Getter for the last change date and time as string.
+
     Methods:
         IotHardwareComponent()
             Constructor.
@@ -50,20 +57,22 @@ class IotHardwareComponent(wp_repository.RepositoryElement):
     _attribute_map = wp_repository.AttributeMap(
         "iot_hardware_component",
         [wp_repository.AttributeMapping(0, "hardware_id", "hardware_id", str, db_key = 1),
-         wp_repository.AttributeMapping(1, "hardware_type", "hardware_type", str),
-         wp_repository.AttributeMapping(2, "if_type", "if_type", str),
-         wp_repository.AttributeMapping(3, "i2c_bus_id", "i2c_bus_id", int),
-         wp_repository.AttributeMapping(4, "i2c_bus_address", "i2c_bus_addr", int),
-         wp_repository.AttributeMapping(5, "polling_interval", "polling_interval", int),
-         wp_repository.AttributeMapping(6, "topic_data", "topic_data", str),
-         wp_repository.AttributeMapping(7, "topic_cmd", "topic_cmd", str),
-         wp_repository.AttributeMapping(8, "topic_health", "topic_health", str),
-         wp_repository.AttributeMapping(9, "store_date", "store_date", datetime)])
+         wp_repository.AttributeMapping(1, "broker_id", "broker_id", str),
+         wp_repository.AttributeMapping(2, "hardware_type", "hardware_type", str),
+         wp_repository.AttributeMapping(3, "if_type", "if_type", str),
+         wp_repository.AttributeMapping(4, "i2c_bus_id", "i2c_bus_id", int),
+         wp_repository.AttributeMapping(5, "i2c_bus_address", "i2c_bus_addr", int),
+         wp_repository.AttributeMapping(6, "polling_interval", "polling_interval", int),
+         wp_repository.AttributeMapping(7, "topic_data", "topic_data", str),
+         wp_repository.AttributeMapping(8, "topic_cmd", "topic_cmd", str),
+         wp_repository.AttributeMapping(9, "topic_health", "topic_health", str),
+         wp_repository.AttributeMapping(10, "store_date", "store_date", datetime)])
 
     def __init__(self):
         """ Constructor. """
         super().__init__()
         self.hardware_id = ""
+        self.broker_id = ""
         self.hardware_type = ""
         self.if_type = "I2C"
         self.i2c_bus_id = 0
@@ -73,3 +82,12 @@ class IotHardwareComponent(wp_repository.RepositoryElement):
         self.topic_cmd = "hw/output"
         self.topic_health = "hw/health"
         self.store_date = datetime.now()
+
+    @property
+    def store_date_str(self) -> str:
+        """ Getter for the last change date and time as string.
+
+        Returns:
+            store_date converted to a string.
+        """
+        return self.store_date.strftime("%Y-%m-%d %H:%M:%S")

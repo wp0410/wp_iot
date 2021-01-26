@@ -14,12 +14,11 @@
 """
 import wp_configuration
 
-
-class IotAgentConfiguration(wp_configuration.DictConfigWrapper):
+class HardwareAgentConfiguration(wp_configuration.DictConfigWrapper):
     def __init__(self, config_dict: dict):
         super().__init__(config_dict)
-        self.mandatory_str('host', [6])
-        self.optional_int('port', 1883)
+        self.mandatory_str('broker_host', [6])
+        self.optional_int('broker_port', 1883)
 
 
 class IotHardwareAgent:

@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>b41f4906-ce80-47ea-b69f-747fd0cac496</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>iot_sensor.py</StartupFile>
+    <StartupFile>__init__.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
