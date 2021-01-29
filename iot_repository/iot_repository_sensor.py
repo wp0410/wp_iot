@@ -15,7 +15,7 @@
 from datetime import datetime
 import wp_repository
 
-class IotSensor(wp_repository.RepositoryElement):
+class IotSensorConfig(wp_repository.RepositoryElement):
     """ Database mapping class for IOT sensors.
 
     Attributes:
@@ -26,7 +26,7 @@ class IotSensor(wp_repository.RepositoryElement):
             messages.
         sensor_type : str
             Type of the sensor.
-        hardware_id : str
+        device_id : str
             Unique identification of the hardware component the IOT sensor is connected to.
         hw_channel : int
             Number of the input channel of the hardware component the IOT sensor is connected to.
@@ -47,35 +47,40 @@ class IotSensor(wp_repository.RepositoryElement):
             Getter for the last change date and time as string.
 
     Methods:
-        IotSensor()
+        IotSensorConfig()
             Constructor.
     """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods
     _attribute_map = wp_repository.AttributeMap(
         "iot_sensor",
-        [wp_repository.AttributeMapping(0, "sensor_id", "sensor_id", str, db_key = 1),
-         wp_repository.AttributeMapping(1, "broker_id", "broker_id", str),
-         wp_repository.AttributeMapping(2, "sensor_type", "sensor_type", str),
-         wp_repository.AttributeMapping(3, "hardware_id", "hardware_id", str),
-         wp_repository.AttributeMapping(4, "hw_channel", "hw_channel", int),
-         wp_repository.AttributeMapping(5, "polling_interval", "polling_interval", int),
-         wp_repository.AttributeMapping(6, "topic_input", "topic_input", str),
-         wp_repository.AttributeMapping(7, "topic_data", "topic_data", str),
-         wp_repository.AttributeMapping(8, "topic_health", "topic_health", str),
-         wp_repository.AttributeMapping(9, "store_date", "store_date", datetime)])
+        [wp_repository.AttributeMapping(0,  "sensor_id", "sensor_id", str, db_key = 1),
+         wp_repository.AttributeMapping(1,  "sensor_type", "sensor_type", str),
+         wp_repository.AttributeMapping(2,  "device_id", "device_id", str),
+         wp_repository.AttributeMapping(3,  "hw_channel", "hw_channel", int),
+         wp_repository.AttributeMapping(4,  "polling_interval", "polling_interval", int),
+         wp_repository.AttributeMapping(5,  "input_broker_id", "input_broker_id", str),
+         wp_repository.AttributeMapping(6,  "input_topic", "input_topic", str),
+         wp_repository.AttributeMapping(7,  "data_broker_id", "data_broker_id", str),
+         wp_repository.AttributeMapping(8,  "data_topic", "data_topic", str),
+         wp_repository.AttributeMapping(9,  "health_broker_id", "health_broker_id", str),
+         wp_repository.AttributeMapping(10, "health_topic", "health_topic", str),
+         wp_repository.AttributeMapping(11, "store_date", "store_date", datetime)])
 
     def __init__(self):
         """ Constructor. """
         super().__init__()
         self.sensor_id = ""
-        self.broker_id = ""
+        self.host_id = ""
         self.sensor_type = ""
-        self.hardware_id = ""
+        self.device_id = ""
         self.hw_channel = 0
         self.polling_interval = 15
-        self.topic_input = ""
-        self.topic_data = ""
-        self.topic_health = ""
+        self.input_broker_id = ""
+        self.input_topic = "sensor/input"
+        self.data_broker_id = ""
+        self.data_topic = "sensor/data"
+        self.health_broker_id = ""
+        self.health_topic = "sensor/health"
         self.store_date = datetime.now()
 
     @property

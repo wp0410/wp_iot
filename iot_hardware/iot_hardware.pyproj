@@ -25,11 +25,11 @@
     <Compile Include="adafruit_ads1x15\analog_in.py" />
     <Compile Include="board.py" />
     <Compile Include="busio.py" />
-    <Compile Include="iot_hardware_agent.py">
+    <Compile Include="iot_hardware_input.py" />
+    <Compile Include="iot_hardware_handler.py" />
+    <Compile Include="iot_message.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="iot_hardware_digital_input.py" />
-    <Compile Include="iot_hardware_handler.py" />
     <Compile Include="smbus2.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>

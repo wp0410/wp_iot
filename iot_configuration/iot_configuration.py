@@ -12,136 +12,133 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
-import wp_repository
+from wp_repository import SQLiteRepository
 import iot_repository
 
 class IotConfiguration:
-    """ Creates the configuration for the IOT system from the configuration stored in the repository.
+    """ Class for creating dictionaries containing settings for the various IOT components from the configuration
+        data stored in the repository.
 
     Attributes:
-        _sqlite_file_name : str
-            Full path name to the SQLite database file.
-        _broker_config_list: list
-            List containing the configuration setting dictionary per MQTT broker.
+        _host_id : str
+            Unique identifier of the IOT host requesting the configuration. This will limit access to components
+            assigned to this host only.
+        _host_ip : str
+            IP address or dns name of the host requesting the configuration.
+        _last_change : str
+            Date and time of the most recent change of the configuration settings for the IOT host.
+        _sqlite_db_path : str
+            Full path name of the SQLite database file containing the settings.
+
+    Properties:
+        host_id : str
+            Getter for the unique identification of the current IOT host.
+        brokers : dict
+            Getter for the configuration settings for all MQTT brokers defined in the IOT system.
 
     Methods:
-        IotConfiguration()
-            Constructor.
-        _build_config: dict
-            Builds the configuration dictionary for a MQTT broker from the repository.
-        _build_hardware_config : list
-            Builds the list of configuration dictionaries of hardware elements using the given MQTT broker
-            for message subscription/publishing.
-        _build_sensor_config : list
-            Builds the list of configuration dictionaries of sensors using the given MQTT broker for
-            message subscription/publishing.
+        hardware_components : list
+            Retrieves configuration setting dictionaries for all hardware components that are assigned to the
+            current host and a specific process group.
     """
-    def __init__(self, sqlite_file_name: str):
-        """ Constructor.
+    def __init__(self, host_ip_address: str, sqlite_db_path: str):
+        self._host_ip = host_ip_address
+        self._sqlite_db_path = sqlite_db_path
+        with SQLiteRepository(iot_repository.IotHostConfig, self._sqlite_db_path) as host_repo:
+            host_list = host_repo.select_where([("host_ip", "=", self._host_ip)])
+        if len(host_list) == 0:
+            raise ValueError('host(ip_address="{}": no configuration data found'.format(self._host_ip))
+        db_host = host_list[0]
+        self._host_id = db_host.host_id
+        self._last_change = db_host.store_date_str
 
-        Parameters:
-            sqlite_file_name : str
-                Full path name to the SQLite database file.
-        """
-        self._sqlite_file_name = sqlite_file_name
-        self._broker_config_list = []
-        with wp_repository.SQLiteRepository(iot_repository.IotMqttBroker, self._sqlite_file_name) as repo:
-            broker_list = repo.select_all()
-        for broker in broker_list:
-            self._broker_config_list.append(self._build_config(broker))
-
-    def _build_config(self, broker: iot_repository.IotMqttBroker) -> dict:
-        """ Builds the configuration dictionary for a MQTT broker from the repository.
-
-        Parameters:
-            broker : iot_repository.IotMqttBroker
-                Broker for which the configuration dictionary shall be created.
+    @property
+    def host_id(self) -> str:
+        """ Getter for the unique identification of the current IOT host.
 
         Returns:
-            dict : Configuration dictionary for the given MQTT broker.
+            Unique identification of the current IOT host.
         """
-        result = {
-            'broker' : {
-                'broker_id': broker.broker_id,
-                'host': broker.broker_host,
-                'port': broker.broker_port,
-                'change_date': broker.store_date_str
-            },
-            'hardware_components': self._build_hardware_config(broker),
-            'sensors': self._build_sensor_config(broker)
-        }
-        return result
+        return self._host_id
 
-    def _build_hardware_config(self, broker: iot_repository.IotMqttBroker) -> list:
-        """ Builds the list of configuration dictionaries of hardware elements using the given MQTT broker
-            for message subscription/publishing.
-
-        Parameters:
-            broker : iot_repository.IotMqttBroker
-                Broker for which the configuration dictionary shall be created.
+    @property
+    def brokers(self) -> dict:
+        """ Getter for the configuration settings for all MQTT brokers defined in the IOT system.
 
         Returns:
-            list : Configuration dictionaries for the hardware elements using the MQTT broker.
+            dict:
+                A dictionary containing the broker configurations. Format:
+                { 'broker_id_1' : {
+                     'broker_id': 'broker_id_1',
+                     'broker_host': <name or ip>,
+                     'broker_port': <port>,
+                     'last_change': <date> },
+                  'broker_id_2' : {
+                     'broker_id': 'broker_id_2',
+                     'broker_host': <name or ip>,
+                     'broker_port': <port>,
+                     'last_change': <date> },
+                  ... }
         """
-        hw_config = []
-        with wp_repository.SQLiteRepository(iot_repository.IotHardwareComponent, self._sqlite_file_name) as repo:
-            hw_components = repo.select_where([("broker_id", "=", broker.broker_id)])
-        for hw_component in hw_components:
-            with wp_repository.SQLiteRepository(iot_repository.IotSensor, self._sqlite_file_name) as repo:
-                assigned_sensors = repo.select_where([("hardware_id", "=", hw_component.hardware_id)])
-            channels = []
-            for sensor in assigned_sensors:
-                channels.append(sensor.hw_channel)
-            hw_component_config = {
-                'device_id': hw_component.hardware_id,
-                'device_type': hw_component.hardware_type,
-                'interface:': {
-                    'if_type': hw_component.if_type,
-                    'i2c': {
-                        'bus_id': hw_component.i2c_bus_id,
-                        'bus_address': hw_component.i2c_bus_address
+        with SQLiteRepository(iot_repository.IotMqttBrokerConfig, self._sqlite_db_path) as brk_repo:
+            db_brokers = brk_repo.select_all()
+        broker_config = dict()
+        for db_broker in db_brokers:
+            broker_config[db_broker.broker_id] = {
+                'broker_id':   db_broker.broker_id,
+                'host': db_broker.broker_host,
+                'port': db_broker.broker_port,
+                'last_change': db_broker.store_date_str
+            }
+        return broker_config
+
+    def hardware_components(self, process_group: int) -> list:
+        """ Retrieves configuration setting dictionaries for all hardware components that are assigned to the
+            current host and a specific process group.
+
+        Parameters:
+            process_group : int
+                Process group to retrieve hardware components for.
+
+        Returns:
+            list
+                List of dictionaries containing the configuration setting for a hardware handler and its
+                associated hardware component.
+        """
+        with SQLiteRepository(iot_repository.IotHostAssignedComponent, self._sqlite_db_path) as comp_repo:
+            db_assigned_comps = comp_repo.select_where(
+                [("host_id", "=", self._host_id), ("process_group", "=", process_group)])
+        hw_components = []
+        with SQLiteRepository(iot_repository.IotHardwareConfig, self._sqlite_db_path) as hw_repo:
+            with SQLiteRepository(iot_repository.IotSensorConfig, self._sqlite_db_path) as sensor_repo:
+                for db_assigned_comp in db_assigned_comps:
+                    db_hw_component = hw_repo.select_by_key(db_assigned_comp.comp_id)
+                    if db_hw_component is None:
+                        continue
+                    hw_config = {
+                        'config_type':      'HardwareDevice',
+                        'device_id':        db_hw_component.device_id,
+                        'host_id':          db_hw_component.host_id,
+                        'device_type':      db_hw_component.device_type,
+                        'model':            db_hw_component.model,
+                        'polling_interval': db_hw_component.polling_interval,
+                        'data_topic':       { 'broker': db_hw_component.data_broker_id,
+                                              'topic': db_hw_component.data_topic },
+                        'input_topic':      { 'broker': db_hw_component.input_broker_id,
+                                              'topic': db_hw_component.input_topic },
+                        'health_topic':     { 'broker': db_hw_component.health_broker_id,
+                                              'topic': db_hw_component.health_topic },
+                        'last_change':      db_hw_component.store_date_str
                     }
-                },
-                'active_ports': channels,
-                'topics': {
-                    'data_prefix': hw_component.topic_data,
-                    'health_prefix': hw_component.topic_health
-                },
-                'polling_interval': hw_component.polling_interval,
-                'change_date': hw_component.store_date_str
-            }
-            hw_config.append(hw_component_config)
-        return hw_config
-
-    def _build_sensor_config(self, broker: iot_repository.IotMqttBroker) -> list:
-        """ Builds the list of configuration dictionaries of sensors using the given MQTT broker for
-            message subscription/publishing.
-
-        Parameters:
-            broker : iot_repository.IotMqttBroker
-                Broker for which the configuration dictionary shall be created.
-
-        Returns:
-            list : Configuration dictionaries for the sensors using the MQTT broker.
-        """
-        sensor_config = []
-        with wp_repository.SQLiteRepository(iot_repository.IotSensor, self._sqlite_file_name) as repo:
-            sensor_list = repo.select_where([("broker_id", "=", broker.broker_id)])
-        for sensor in sensor_list:
-            config = {
-                'sensor_id': sensor.sensor_id,
-                'sensor_type': sensor.sensor_type,
-                'hardware': {
-                    'id': sensor.hardware_id,
-                    'channel': sensor.hw_channel
-                },
-                'topics': {
-                    'input_prefix': sensor.topic_input,
-                    'data_prefix': sensor.topic_data,
-                    'health_prefix': sensor.topic_health
-                },
-                'polling_interval': sensor.polling_interval,
-                'change_date': sensor.store_date_str
-            }
-            sensor_config.append(config)
-        return sensor_config
+                    if db_hw_component.if_type == "I2C":
+                        hw_config['i2c'] = {
+                            'bus_id': db_hw_component.i2c_bus_id, 'bus_address': db_hw_component.i2c_bus_address
+                        }
+                    db_sensors = sensor_repo.select_where(
+                        [("device_id", "=", db_hw_component.device_id)])
+                    active_ports = []
+                    for db_sensor in db_sensors:
+                        active_ports.append(db_sensor.hw_channel)
+                    hw_config['active_ports'] = active_ports
+                    hw_components.append(hw_config)
+        return hw_components

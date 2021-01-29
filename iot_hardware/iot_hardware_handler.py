@@ -14,57 +14,35 @@
 """
 import inspect
 import logging
+import json
 import wp_queueing
-import wp_configuration
 import iot_base
-import iot_hardware_digital_input as iot_hw
+from iot_message import InputProbe
+from iot_hardware_input import DigitalInputADS1115
 
 
-class IotHardwareConfig(wp_configuration.wp_configuration.DictConfigWrapper):
-    """ Class for validation of configuration settings for a hardware handler and the associated
-        hardware element.
-
-    Methods:
-        IotSensorConfig():
-            Constructor.
-    """
-    def __init__(self, config_dict: dict):
-        """ Constructor.
-
-        Parameters:
-            config_dict : dict
-                Dictionary containing the configuration settings for the hardware handler and the
-                associated hardware.
-        """
-        super().__init__(config_dict)
-        self.mandatory_str('device_type', [6])
-        self.mandatory_str('device_id', [6])
-        self.mandatory_dict('topics', ['data_prefix', 'health_prefix'])
-        self.optional_int('polling_interval', 1)
-        self.optional_int('health_interval_mult', 30)
-
-
-
-class DigitalInputHandler(iot_base.IotHandlerBase):
-    """ Handler for a digital input hardware device (ADS1115).
+class IotInputDeviceHandler(iot_base.IotHandlerBase):
+    """ Handler for an input hardware device (ADS1115).
 
     Attributes:
-        _logger : logging.Logger
+        logger : logging.Logger
             Logger to be used.
-        _device_type : str
+        device_type : str
             Type of the digital input device. Currently allowed values:
                 "ADS1115"
-        _mqtt_publish : wp_queueing.MQTTProducer
-            Producer to publish the polled input values.
-        _device : object
-            Object class implementing a digital input device.
+        mqtt_pub_data : wp_queueing.MQTTProducer
+            Session to a MQTT broker for publishing the polled input values.
+        mqtt_pub_health: wp_queueing.MQTTProducer
+            Session to a MQTT broker for publishing the polled health check results.
+        device : InputDevice
+            Input device driver that handles the connected hardware component.
 
     Methods:
-        DigitalInputHandler
+        InputDeviceHandler
             Constructor.
     """
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, config_dict: dict, logger: logging.Logger, mqtt_publish: wp_queueing.MQTTProducer):
+    def __init__(self, device_config: dict, logger: logging.Logger):
         """ Constructor.
 
         Parameters:
@@ -76,24 +54,34 @@ class DigitalInputHandler(iot_base.IotHandlerBase):
                 Producer to be used to publish the polled values.
         """
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
-        self._logger = logger
-        self._logger.debug(mth_name)
-        self._config = IotHardwareConfig(config_dict)
-        self._device_type = config_dict['device_type']
-        topic_prefixes = config_dict['topics']
-        self._prefix_data = topic_prefixes['data_prefix']
-        self._prefix_health = topic_prefixes['health_prefix']
-        super().__init__(config_dict['polling_interval'])
-        self._health_interval_mult = config_dict['health_interval_mult']
-        self._health_timer = self._health_interval_mult
+        self.device_id = device_config['device_id']
+        self.device_type = device_config['device_type']
+        self.device_model = device_config['model']
+        self.logger = logger
 
-        if self._device_type == 'ADS1115':
-            self._device = iot_hw.DigitalInputADS1115(config_dict, logger)
+        self.logger.debug('{}: device_id={}, device_type={}, model={}'.format(
+            mth_name, self.device_id, self.device_type, self.device_model))
+
+        data_topic = None
+        input_topic = None
+        health_topic = None
+        if 'data_topic' in device_config:
+            data_topic = device_config['data_topic']
+        if 'input_topic' in device_config:
+            input_topic = device_config['input_topic']
+        if 'health_topic' in device_config:
+            health_topic = device_config['health_topic']
+        super().__init__(device_config['polling_interval'],
+                         data_topic = data_topic, input_topic = input_topic, health_topic = health_topic)
+        if self.device_model == 'ADS1115':
+            self._device = DigitalInputADS1115(
+                self.device_id,
+                device_config['i2c']['bus_id'], device_config['i2c']['bus_address'],
+                device_config['active_ports'], logger)
         else:
             self._device = None
-        self._mqtt_publish = mqtt_publish
 
-    def _data_topic(self, probe: iot_hw.DigitalInputProbe) -> str:
+    def _data_topic(self, probe: InputProbe) -> str:
         """ Constructs the MTTQ message topic for a MQTT message to be published to the broker.
 
         Parameters:
@@ -102,38 +90,34 @@ class DigitalInputHandler(iot_base.IotHandlerBase):
         Returns:
             str : MQTT topic.
         """
-        return "{}/{}/{}".format(self._prefix_data, probe.device_id, probe.channel_no)
+        return "{}/{}/{}".format(self.data_topic[1], probe.device_id, probe.channel_no)
 
     def _health_topic(self) -> str:
-        return "{}/{}".format(self._prefix_health, self._device.device_id)
+        return "{}/{}".format(self.health_topic[1], self._device.device_id)
 
     def polling_timer_event(self) -> None:
         """ Indicates that the polling timer has expired and the underlying device must be probed.
         """
         super().polling_timer_event()
-        self._polling_timer_event()
-        self._health_timer -= 1
-        if self._health_timer <= 0:
-            self._health_timer_event()
-            self._health_timer = self._health_interval_mult
-
-
-    def _polling_timer_event(self) -> None:
-        """ Indicates that the polling timer has expired and the underlying device must be probed.
-        """
-        if self._device is None:
+        mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
+        self.logger.debug(mth_name)
+        if self._device is None or self.data_topic is None:
             return
         poll_result = self._device.probe()
         for probe in poll_result:
             msg = wp_queueing.QueueMessage(self._data_topic(probe))
             msg.msg_payload = probe.to_dict()
-            self._mqtt_publish.publish_single(msg)
+            self.data_topic[0].publish_single(msg)
 
-    def _health_timer_event(self) -> None:
+    def health_timer_event(self) -> None:
         """ Indicates the the health check timer has expired and health check information must be published. """
-        if self._device is None:
+        super().health_timer_event()
+        mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
+        self.logger.debug(mth_name)
+        if self._device is None or self.health_topic is None:
             return
         health_result = self._device.health()
         msg = wp_queueing.QueueMessage(self._health_topic())
         msg.msg_payload = health_result.to_dict()
-        self._mqtt_publish.publish_single(msg)
+        self.health_topic[0].publish_single(msg)
+        self.logger.debug('{}: publish "{}"'.format(mth_name, json.dumps(msg.msg_payload)))

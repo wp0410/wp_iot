@@ -15,7 +15,7 @@
 from datetime import datetime
 import wp_repository
 
-class IotMqttBroker(wp_repository.RepositoryElement):
+class IotMqttBrokerConfig(wp_repository.RepositoryElement):
     """ Database mapping class for IOT broker settings.
 
     Attributes:
@@ -33,7 +33,7 @@ class IotMqttBroker(wp_repository.RepositoryElement):
             Getter for the last change date and time as string.
 
     Methods:
-        IotMqttBroker()
+        IotMqttBrokerConfig()
             Constructor.
     """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods

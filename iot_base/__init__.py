@@ -13,3 +13,5 @@
     and limitations under the LICENSE.
 """
 from iot_handler import IotHandlerBase
+from iot_host import IotHost
+from iot_agent import IotAgent

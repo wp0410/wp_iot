@@ -25,6 +25,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="iot_repository_hardware.py" />
+    <Compile Include="iot_repository_host.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="iot_repository_sensor.py">
       <SubType>Code</SubType>
     </Compile>

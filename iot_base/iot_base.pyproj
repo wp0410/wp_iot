@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>2e8c9ab2-c71d-455a-92c7-f7e2c43d484e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>iot_handler.py</StartupFile>
+    <StartupFile>__init__.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,7 +21,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="iot_agent.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="iot_handler.py" />
+    <Compile Include="iot_host.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
