@@ -25,9 +25,18 @@ class IotHost:
             Constructor
         start_hardware_agents : None
             Starts the agent threads for the hardware components attached to the host.
+        stop_agents : None
+            Stops the currently running agent threads.
     """
     def __init__(self, sqlite_db_path: str, process_group: int = 0):
         """ Constructor.
+
+        Parameters:
+            sqlite_db_path : str
+                Path name of the SQLite database file containing the configuration settings.
+            process_group : int, optional
+                Allows for agents to be started on a specific hosts to be split into separate process
+                groups.
         """
         self._sqlite_db_path = sqlite_db_path
         self._process_group = process_group
@@ -35,10 +44,22 @@ class IotHost:
         self._config = iot_configuration.IotConfiguration(self._ip_address, self._sqlite_db_path)
         self._agents = []
 
+    def __del__(self):
+        """ Destructor. """
+        self.stop_agents()
+
     def start_hardware_agents(self) -> None:
-        """ Starts the agent processes for the hardware components attached to the host. """
+        """ Starts the agent threads for the hardware components attached to the host. """
         brokers = self._config.brokers
         hw_components = self._config.hardware_components(self._config.host_id, self._process_group)
         for hw_component in hw_components:
             hw_agent = iot_agent.IotAgent(brokers, hw_component)
             self._agents.append(hw_agent)
+            hw_agent.start()
+
+    def stop_agents(self) -> None:
+        """ Stops the currently running agent threads. """
+        for agent in self._agents:
+            if not agent.stop():
+                agent.kill()
+            self._agents.remove(agent)

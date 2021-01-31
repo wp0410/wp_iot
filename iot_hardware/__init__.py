@@ -12,6 +12,11 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
-from iot_message import InputProbe, InputHealth
-from iot_hardware_input import IotInputDevice, DigitalInputADS1115
-from iot_hardware_handler import IotInputDeviceHandler
+try:
+    from .iot_message import InputProbe, InputHealth
+    from .iot_hardware_input import IotInputDevice, DigitalInputADS1115
+    from .iot_hardware_handler import IotInputDeviceHandler
+except ImportError:
+    from iot_message import InputProbe, InputHealth
+    from iot_hardware_input import IotInputDevice, DigitalInputADS1115
+    from iot_hardware_handler import IotInputDeviceHandler

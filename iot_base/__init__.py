@@ -12,6 +12,11 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
-from iot_handler import IotHandlerBase
-from iot_host import IotHost
-from iot_agent import IotAgent
+try:
+    from .iot_handler import IotHandlerBase
+    from .iot_host import IotHost
+    from .iot_agent import IotAgent
+except ImportError:
+    from iot_handler import IotHandlerBase
+    from iot_host import IotHost
+    from iot_agent import IotAgent

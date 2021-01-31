@@ -12,4 +12,7 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
-from iot_configuration import IotConfiguration
+try:
+    from .iot_configuration import IotConfiguration
+except ImportError:
+    from iot_configuration import IotConfiguration

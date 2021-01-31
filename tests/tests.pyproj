@@ -2,14 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ba2f9b2a-da53-435a-9557-1c8f5efe4c9c</ProjectGuid>
+    <ProjectGuid>dc0c2ad1-f31a-4580-8528-edd578c091fc</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>__init__.py</StartupFile>
+    <StartupFile>test_iot_repository.py</StartupFile>
     <SearchPath>..\iot_repository</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>iot_configuration</Name>
-    <RootNamespace>iot_configuration</RootNamespace>
+    <Name>tests</Name>
+    <RootNamespace>tests</RootNamespace>
+    <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,15 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="iot_configuration.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include=".pylintrc" />
+    <Compile Include="test_iot_repository.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

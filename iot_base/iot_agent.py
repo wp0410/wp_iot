@@ -16,7 +16,7 @@ import logging
 import time
 import threading
 import wp_queueing
-import iot_hardware
+import iot_hardware_handler
 from iot_handler import IotHandlerBase
 
 class IotAgent:
@@ -45,6 +45,9 @@ class IotAgent:
             Starts the thread executing the do_processing() loop.
         stop : bool
             Stops the agent, meaning that the internal worker thread will be stopped.
+        kill : None
+            Kills the agent's internal worker thread. In the current implementation,
+            this method has no effect.
         _create_logger : logging.Logger, static
             Creates the logger for the controlled handler and its internal component.
         _create_hardware_config : dict
@@ -165,7 +168,7 @@ class IotAgent:
             self._handler_config = self._create_hardware_config(handler_config)
             device_type = self._handler_config['device_type']
             if device_type.find('Input') >= 0:
-                handler = iot_hardware.IotInputDeviceHandler(self._handler_config, self._logger)
+                handler = iot_hardware_handler.IotInputDeviceHandler(self._handler_config, self._logger)
                 self._agent_id = handler_config['device_id']
             elif device_type.find('Output') >= 0:
                 pass
@@ -195,7 +198,7 @@ class IotAgent:
         """ Starts the thread executing the do_processing() loop. """
         self._stop_event = threading.Event()
         self._stop_event.clear()
-        self._thread = threading.Thread(target=self.do_processing, name='agent_{}'.format(self.agent_id))
+        self._thread = threading.Thread(target=self.do_processing, name='agent_{}'.format(self.agent_id), daemon=True)
         self._thread.start()
 
     @property
@@ -215,10 +218,16 @@ class IotAgent:
         Returns:
             bool : Indication whether or not the agent has been successfully stopped.
                 True ... agent thread stopped;
-                Falst .. agent thread is still running.
+                False .. agent thread is still running.
         """
         if self._thread is None or self._stop_event is None:
             return True
         self._stop_event.set()
         self._thread.join(3)
         return not self._thread.is_alive()
+
+    def kill(self) -> None:
+        """ Kills the agent's internal worker thread. In the current implementation,
+            a re-try is made to stop the thread.
+        """
+        self.stop()

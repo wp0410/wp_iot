@@ -33,6 +33,8 @@ class IotHostConfig(wp_repository.RepositoryElement):
     Methods:
         IotHost()
             Constructor.
+        __str__: str
+            Create printable character string from object.
     """
     _attribute_map = wp_repository.AttributeMap(
         "iot_host",
@@ -55,6 +57,11 @@ class IotHostConfig(wp_repository.RepositoryElement):
             store_date converted to a string.
         """
         return self.store_date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def __str__(self) -> str:
+        """ Create printable character string from object. """
+        return 'IotHostConfig(host_id: "{}"; host_ip: "{}"; store_date:"{}")'.format(
+            self.host_id, self.host_ip, self.store_date_str)
 
 class IotHostAssignedComponent(wp_repository.RepositoryElement):
     """ Database mapping class for components that are assigned to an IOT host.

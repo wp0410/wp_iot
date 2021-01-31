@@ -16,12 +16,12 @@ import inspect
 import logging
 import json
 import wp_queueing
-import iot_base
+import iot_handler as iot_handler_base
 from iot_message import InputProbe
 from iot_hardware_input import DigitalInputADS1115
 
 
-class IotInputDeviceHandler(iot_base.IotHandlerBase):
+class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
     """ Handler for an input hardware device (ADS1115).
 
     Attributes:
@@ -72,6 +72,7 @@ class IotInputDeviceHandler(iot_base.IotHandlerBase):
         if 'health_topic' in device_config:
             health_topic = device_config['health_topic']
         super().__init__(device_config['polling_interval'],
+                         min(device_config['polling_interval'] * 30, 300),
                          data_topic = data_topic, input_topic = input_topic, health_topic = health_topic)
         if self.device_model == 'ADS1115':
             self._device = DigitalInputADS1115(

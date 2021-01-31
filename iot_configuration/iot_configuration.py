@@ -13,7 +13,10 @@
     and limitations under the LICENSE.
 """
 from wp_repository import SQLiteRepository
-import iot_repository
+import iot_repository_host
+import iot_repository_broker
+import iot_repository_hardware
+import iot_repository_sensor
 
 class IotConfiguration:
     """ Class for creating dictionaries containing settings for the various IOT components from the configuration
@@ -44,7 +47,7 @@ class IotConfiguration:
     def __init__(self, host_ip_address: str, sqlite_db_path: str):
         self._host_ip = host_ip_address
         self._sqlite_db_path = sqlite_db_path
-        with SQLiteRepository(iot_repository.IotHostConfig, self._sqlite_db_path) as host_repo:
+        with SQLiteRepository(iot_repository_host.IotHostConfig, self._sqlite_db_path) as host_repo:
             host_list = host_repo.select_where([("host_ip", "=", self._host_ip)])
         if len(host_list) == 0:
             raise ValueError('host(ip_address="{}": no configuration data found'.format(self._host_ip))
@@ -80,7 +83,7 @@ class IotConfiguration:
                      'last_change': <date> },
                   ... }
         """
-        with SQLiteRepository(iot_repository.IotMqttBrokerConfig, self._sqlite_db_path) as brk_repo:
+        with SQLiteRepository(iot_repository_broker.IotMqttBrokerConfig, self._sqlite_db_path) as brk_repo:
             db_brokers = brk_repo.select_all()
         broker_config = dict()
         for db_broker in db_brokers:
@@ -105,12 +108,12 @@ class IotConfiguration:
                 List of dictionaries containing the configuration setting for a hardware handler and its
                 associated hardware component.
         """
-        with SQLiteRepository(iot_repository.IotHostAssignedComponent, self._sqlite_db_path) as comp_repo:
+        with SQLiteRepository(iot_repository_host.IotHostAssignedComponent, self._sqlite_db_path) as comp_repo:
             db_assigned_comps = comp_repo.select_where(
                 [("host_id", "=", self._host_id), ("process_group", "=", process_group)])
         hw_components = []
-        with SQLiteRepository(iot_repository.IotHardwareConfig, self._sqlite_db_path) as hw_repo:
-            with SQLiteRepository(iot_repository.IotSensorConfig, self._sqlite_db_path) as sensor_repo:
+        with SQLiteRepository(iot_repository_hardware.IotHardwareConfig, self._sqlite_db_path) as hw_repo:
+            with SQLiteRepository(iot_repository_sensor.IotSensorConfig, self._sqlite_db_path) as sensor_repo:
                 for db_assigned_comp in db_assigned_comps:
                     db_hw_component = hw_repo.select_by_key(db_assigned_comp.comp_id)
                     if db_hw_component is None:

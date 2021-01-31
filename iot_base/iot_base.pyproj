@@ -5,8 +5,7 @@
     <ProjectGuid>2e8c9ab2-c71d-455a-92c7-f7e2c43d484e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>__init__.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\iot_configuration;..\iot_hardware</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>iot_base</Name>
