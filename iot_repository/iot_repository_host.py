@@ -85,6 +85,8 @@ class IotHostAssignedComponent(wp_repository.RepositoryElement):
     Methods:
         IotHostAssignedComponent()
             Constructor.
+        __str__: str
+            Converts an instance of the class to a string object.
     """
     _attribute_map = wp_repository.AttributeMap(
         "iot_host_component",
@@ -108,3 +110,9 @@ class IotHostAssignedComponent(wp_repository.RepositoryElement):
             store_date converted to a string.
         """
         return self.store_date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def __str__(self) -> str:
+        """ Converts an instance of the class to a string object. """
+        return 'IotHostAssignedComponent({}, {}, {}, {})'.format(
+            f'host_id: "{self.host_id}"', f'comp_id: "{self.comp_id}"',
+            f'process_group: "{self.process_group}"', f'store_date: "{self.store_date_str}"')

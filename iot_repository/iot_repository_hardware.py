@@ -57,6 +57,8 @@ class IotHardwareConfig(wp_repository.RepositoryElement):
     Methods:
         IotHardwareConfig()
             Constructor.
+        __str__: str
+            Converts an instance of the class to a string object.
     """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods
     _attribute_map = wp_repository.AttributeMap(
@@ -81,6 +83,7 @@ class IotHardwareConfig(wp_repository.RepositoryElement):
         super().__init__()
         self.device_id = ""
         self.device_type = ""
+        self.model = ""
         self.if_type = "I2C"
         self.i2c_bus_id = 0
         self.i2c_bus_address = 0
@@ -101,3 +104,14 @@ class IotHardwareConfig(wp_repository.RepositoryElement):
             store_date converted to a string.
         """
         return self.store_date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def __str__(self) -> str:
+        """ Converts an instance of the class to a string object. """
+        return 'IotHardwareConfig({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})'.format(
+            f'device_id: "{self.device_id}"', f'device_type: "{self.device_type}"', f'model: "{self.model}"',
+            f'if_type: "{self.if_type}"', f'i2c_bus_id: "{self.i2c_bus_id}"',
+            f'i2c_bus_address: "{self.i2c_bus_address}"', f'polling_interval: "{self.polling_interval}"',
+            f'data_broker_id: "{self.data_broker_id}"', f'data_topic: "{self.data_topic}"',
+            f'input_broker_id: "{self.input_broker_id}"', f'inpt_topic: "{self.input_topic}"',
+            f'health_broker_id: "{self.health_broker_id}"', f'health_topic: "{self.health_topic}"',
+            f'store_date: "{self.store_date_str}"')

@@ -17,7 +17,7 @@ import time
 import threading
 import wp_queueing
 import iot_hardware_handler
-from iot_handler import IotHandlerBase
+import iot_handler_base
 
 class IotAgent:
     """ Agent controlling the thread that hosts a handler for a hardware component, sensor or actor.
@@ -125,6 +125,7 @@ class IotAgent:
         hardware_config = {
             'device_id': handler_config['device_id'],
             'device_type' : handler_config['device_type'],
+            'model' : handler_config['model'],
             'polling_interval': handler_config['polling_interval'],
             'last_change': handler_config['last_change']
         }
@@ -151,7 +152,7 @@ class IotAgent:
             hardware_config['health_topic'] = (broker_config['mqtt_client'], health_topic['topic'])
         return hardware_config
 
-    def _create_handler(self, handler_config: dict) -> IotHandlerBase:
+    def _create_handler(self, handler_config: dict) -> iot_handler_base.IotHandlerBase:
         """ Creates the controlled handler instance.
 
         Parameters:

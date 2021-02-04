@@ -21,12 +21,17 @@ class IotHost:
         Starts the controllers for these IOT components in seperate agent threads.
 
     Methods:
-        IotHost()
+        IotHost
             Constructor
+        start_agents: None
+            Starts the agent threads for all IOT components attached to the host, belonging to the
+            correct process group.
         start_hardware_agents : None
             Starts the agent threads for the hardware components attached to the host.
         stop_agents : None
-            Stops the currently running agent threads.
+            Stops all currently running agent threads.
+        stop_hardware_agents: None
+            Stops all currently running hardware agent threads.
     """
     def __init__(self, sqlite_db_path: str, process_group: int = 0):
         """ Constructor.
@@ -40,9 +45,13 @@ class IotHost:
         """
         self._sqlite_db_path = sqlite_db_path
         self._process_group = process_group
-        self._ip_address = socket.gethostbyname(socket.gethostname())
+        # self._ip_address = socket.gethostbyname(socket.gethostname())
+        self._ip_address = [l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2]
+                            if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)),
+                            s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET,
+                            socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
         self._config = iot_configuration.IotConfiguration(self._ip_address, self._sqlite_db_path)
-        self._agents = []
+        self._agents = dict()
 
     def __del__(self):
         """ Destructor. """
@@ -50,16 +59,28 @@ class IotHost:
 
     def start_hardware_agents(self) -> None:
         """ Starts the agent threads for the hardware components attached to the host. """
+        hw_agents = []
         brokers = self._config.brokers
         hw_components = self._config.hardware_components(self._config.host_id, self._process_group)
         for hw_component in hw_components:
             hw_agent = iot_agent.IotAgent(brokers, hw_component)
-            self._agents.append(hw_agent)
+            hw_agents.append(hw_agent)
             hw_agent.start()
+        self._agents['hardware'] = hw_agents
 
-    def stop_agents(self) -> None:
-        """ Stops the currently running agent threads. """
-        for agent in self._agents:
+    def stop_hardware_agents(self) -> None:
+        """ Stops all currently running hardware agent threads. """
+        hw_agents = self._agents['hardware']
+        for agent in hw_agents:
             if not agent.stop():
                 agent.kill()
-            self._agents.remove(agent)
+        self._agents['hardware'] = []
+
+    def start_agents(self) -> None:
+        """ Starts the agent threads for all IOT components attached to the host, belonging to the
+            correct process group. """
+        self.start_hardware_agents()
+
+    def stop_agents(self) -> None:
+        """ Stops all currently running agent threads. """
+        self.stop_hardware_agents()

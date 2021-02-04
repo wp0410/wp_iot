@@ -13,9 +13,9 @@
     and limitations under the LICENSE.
 """
 from datetime import datetime
-from wp_queueing import IConvertToDict
+import wp_queueing
 
-class InputProbe(IConvertToDict):
+class InputProbe(wp_queueing.IConvertToDict):
     """ Result of reading an input channel of an Input device.
 
     Attributes:
@@ -106,7 +106,7 @@ class InputProbe(IConvertToDict):
             self.voltage = msg_dict['voltage']
 
 
-class InputHealth(IConvertToDict):
+class InputHealth(wp_queueing.IConvertToDict):
     """ Data object to report the health status of an input device.
 
     Attributes:

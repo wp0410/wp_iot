@@ -26,9 +26,6 @@
     <Compile Include="busio.py" />
     <Compile Include="iot_hardware_input.py" />
     <Compile Include="iot_hardware_handler.py" />
-    <Compile Include="iot_message.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="smbus2.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>

@@ -41,29 +41,29 @@ class IotHandlerBase:
     """
     # pylint: disable=too-many-instance-attributes
     def __init__(self, polling_interval: int, health_check_interval: int,
-                 data_topic: dict, input_topic: dict, health_topic: dict):
+                 data_topic: tuple, input_topic: tuple, health_topic: tuple):
         """ Constructor.
 
         Parameters:
             polling_interval: int
                 Interval in seconds for the invocation of the polling timer event.
-            data_topic : dict
-                Dictionary containing two elements:
-                    'broker': wp_queueing.MqttProducer
+            data_topic : tuple
+                Tuple containing two elements (<broker>, <prefix>), where:
+                    <broker>: wp_queueing.MqttProducer
                         Session to a broker for publishing data messages.
-                    'prefix': str
+                    <prefix>: str
                         Prefix for constructing the topic to which data messages shall be published.
-            input_topic : dict
-                Dictionary containing two elements:
-                    'broker': wp_queueing.MqttConsumer
+            input_topic : tuple
+                Dictionary containing two elements (<broker>, <prefix>), where:
+                    <broker>: wp_queueing.MqttConsumer
                         Session to a broker for subscribing to input messages.
-                    'prefix': str
+                    <prefix>: str
                         Prefix for constructing the topic to subsribe to for receiving input messages.
             health_topic : dict
-                Dictionary containing two elements:
-                    'broker': wp_queueing.MqttProducer
+                Dictionary containing two elements (<broker>, <prefix>), where:
+                    <broker>: wp_queueing.MqttProducer
                         Session to a broker for publishing health check messages.
-                    'prefix': str
+                    <prefix>: str
                         Prefix for constructing the topic to which health check messages shall be published.
         """
         self._polling_interval = polling_interval
@@ -72,18 +72,9 @@ class IotHandlerBase:
         self._health_check_timer = -1
         self._last_tick_tm = None
         self._stopped = False
-        if data_topic is None:
-            self.data_topic = None
-        else:
-            self.data_topic = (data_topic['broker'], data_topic['prefix'])
-        if input_topic is None:
-            self.cmd_topic = None
-        else:
-            self.cmd_topic = (input_topic['broker'], input_topic['prefix'])
-        if health_topic is None:
-            self.health_topic = None
-        else:
-            self.health_topic = (health_topic['broker'], health_topic['prefix'])
+        self.data_topic = data_topic
+        self.health_topic = health_topic
+        self.input_topic = input_topic
 
     def init_time(self) -> None:
         """ Initializes the internal time information and the polling timer.

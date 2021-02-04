@@ -15,11 +15,11 @@
 import inspect
 from datetime import datetime
 import logging
+from iot_message import InputProbe, InputHealth
 import board
 import busio
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
-from iot_message import InputProbe, InputHealth
 
 class IotInputDevice:
     """ Base class to handle input devices connected to the host. An InputDevice instance connects to exactly
@@ -123,7 +123,7 @@ class DigitalInputADS1115(IotInputDevice):
             objects.
 
         Returns:
-            list : List of DigitialInputProbe objects containing the probing results for the active
+            list : List of InputProbe objects containing the probing results for the active
                    input channels.
         """
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
@@ -131,12 +131,12 @@ class DigitalInputADS1115(IotInputDevice):
         probe_result = []
         probe_time = datetime.now()
         i2c_bus = busio.I2C(board.SCL, board.SDA)
-        ads_handle = ADS.ADS1115(i2c_bus, self.i2c_bus_address)
+        ads_handle = ADS.ADS1115(i2c_bus, address=self.i2c_bus_address)
         for channel_number in self.active_ports:
             ads_channel = AnalogIn(ads_handle, channel_number)
             val_read = ads_channel.value
             volt_read = ads_channel.voltage
-            self.logger.debug('{}: channel = {}: value = {}, voltage = {}'.format(
+            self.logger.debug('{0}: channel = {1}: value = {2}, voltage = {3:.5f}'.format(
                 mth_name, channel_number, val_read, volt_read))
             p_res = InputProbe(self.device_type, self.device_id, probe_time, channel_number)
             p_res.value = val_read
@@ -148,7 +148,7 @@ class DigitalInputADS1115(IotInputDevice):
         self.last_probe_time = probe_time
         return probe_result
 
-    def health(self) -> InputHealth:
+    def check_health(self) -> InputHealth:
         """ Performs a health check and returns information about the current status of the ADS1115
             component.
         """
@@ -158,4 +158,6 @@ class DigitalInputADS1115(IotInputDevice):
         h_res.last_probe_time = self.last_probe_time
         h_res.num_probe_total = self.num_probes
         h_res.num_probe_detail = self.num_probe_list
+        self.logger.debug('{}: num_probe_total = {}; num_probe_detail = {}'.format(
+            mth_name, h_res.num_probe_total, str(h_res.num_probe_detail)))
         return h_res

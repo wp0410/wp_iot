@@ -112,16 +112,18 @@ class IotConfiguration:
             db_assigned_comps = comp_repo.select_where(
                 [("host_id", "=", self._host_id), ("process_group", "=", process_group)])
         hw_components = []
+        hw_template = iot_repository_hardware.IotHardwareConfig()
         with SQLiteRepository(iot_repository_hardware.IotHardwareConfig, self._sqlite_db_path) as hw_repo:
             with SQLiteRepository(iot_repository_sensor.IotSensorConfig, self._sqlite_db_path) as sensor_repo:
                 for db_assigned_comp in db_assigned_comps:
-                    db_hw_component = hw_repo.select_by_key(db_assigned_comp.comp_id)
+                    hw_template.device_id = db_assigned_comp.comp_id
+                    db_hw_component = hw_repo.select_by_key(hw_template)
                     if db_hw_component is None:
                         continue
                     hw_config = {
                         'config_type':      'HardwareDevice',
                         'device_id':        db_hw_component.device_id,
-                        'host_id':          db_hw_component.host_id,
+                        'host_id':          self._host_id,
                         'device_type':      db_hw_component.device_type,
                         'model':            db_hw_component.model,
                         'polling_interval': db_hw_component.polling_interval,
@@ -141,7 +143,7 @@ class IotConfiguration:
                         [("device_id", "=", db_hw_component.device_id)])
                     active_ports = []
                     for db_sensor in db_sensors:
-                        active_ports.append(db_sensor.hw_channel)
+                        active_ports.append(db_sensor.device_channel)
                     hw_config['active_ports'] = active_ports
                     hw_components.append(hw_config)
         return hw_components

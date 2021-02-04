@@ -49,31 +49,30 @@ class IotSensorConfig(wp_repository.RepositoryElement):
     Methods:
         IotSensorConfig()
             Constructor.
+        __str__ : str
+            Create printable character string from object.
     """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods
     _attribute_map = wp_repository.AttributeMap(
         "iot_sensor",
-        [wp_repository.AttributeMapping(0,  "sensor_id", "sensor_id", str, db_key = 1),
-         wp_repository.AttributeMapping(1,  "sensor_type", "sensor_type", str),
-         wp_repository.AttributeMapping(2,  "device_id", "device_id", str),
-         wp_repository.AttributeMapping(3,  "hw_channel", "hw_channel", int),
-         wp_repository.AttributeMapping(4,  "polling_interval", "polling_interval", int),
-         wp_repository.AttributeMapping(5,  "input_broker_id", "input_broker_id", str),
-         wp_repository.AttributeMapping(6,  "input_topic", "input_topic", str),
-         wp_repository.AttributeMapping(7,  "data_broker_id", "data_broker_id", str),
-         wp_repository.AttributeMapping(8,  "data_topic", "data_topic", str),
-         wp_repository.AttributeMapping(9,  "health_broker_id", "health_broker_id", str),
-         wp_repository.AttributeMapping(10, "health_topic", "health_topic", str),
-         wp_repository.AttributeMapping(11, "store_date", "store_date", datetime)])
+        [wp_repository.AttributeMapping(0, "sensor_id", "sensor_id", str, db_key = 1),
+         wp_repository.AttributeMapping(1, "sensor_type", "sensor_type", str),
+         wp_repository.AttributeMapping(2, "device_id", "device_id", str),
+         wp_repository.AttributeMapping(3, "device_channel", "hw_channel", int),
+         wp_repository.AttributeMapping(4, "polling_interval", "polling_interval", int),
+         wp_repository.AttributeMapping(5, "data_broker_id", "data_broker_id", str),
+         wp_repository.AttributeMapping(6, "data_topic", "data_topic", str),
+         wp_repository.AttributeMapping(7, "health_broker_id", "health_broker_id", str),
+         wp_repository.AttributeMapping(8, "health_topic", "health_topic", str),
+         wp_repository.AttributeMapping(9, "store_date", "store_date", datetime)])
 
     def __init__(self):
         """ Constructor. """
         super().__init__()
         self.sensor_id = ""
-        self.host_id = ""
         self.sensor_type = ""
         self.device_id = ""
-        self.hw_channel = 0
+        self.device_channel = 0
         self.polling_interval = 15
         self.input_broker_id = ""
         self.input_topic = "sensor/input"
@@ -91,3 +90,12 @@ class IotSensorConfig(wp_repository.RepositoryElement):
             store_date converted to a string.
         """
         return self.store_date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def __str__(self) -> str:
+        """ Create printable character string from object. """
+        return 'IotSensorConfig({}, {}, {}, {}, {}, {}, {}, {}, {}, {})'.format(
+            f'sensor_id: "{self.sensor_id}"', f'sensor_type: "{self.sensor_type}"', f'device_id: "{self.device_id}"',
+            f'device_channel: "{self.device_channel}"', f'polling_interval: "{self.polling_interval}"',
+            f'data_broker_id: "{self.data_broker_id}"', f'data-topic: "{self.data_topic}"',
+            f'health_broker_id: "{self.health_broker_id}"', f'health_topic: "{self.health_topic}"',
+            f'store_date: "{self.store_date_str}"')

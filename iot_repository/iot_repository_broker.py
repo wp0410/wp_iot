@@ -35,6 +35,8 @@ class IotMqttBrokerConfig(wp_repository.RepositoryElement):
     Methods:
         IotMqttBrokerConfig()
             Constructor.
+        __str__ : str
+            Create printable character string from object.
     """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods
     _attribute_map = wp_repository.AttributeMap(
@@ -60,3 +62,9 @@ class IotMqttBrokerConfig(wp_repository.RepositoryElement):
             store_date converted to a string.
         """
         return self.store_date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def __str__(self) -> str:
+        """ Create printable character string from object. """
+        return 'IotMqttBrokerConfig({}, {}, {}, {})'.format(
+            f'broker_id: "{self.broker_id}"', f'broker_host: {self.broker_host}"',
+            f'broker_port: "{self.broker_port}"', f'store_date: {self.store_date_str}"')

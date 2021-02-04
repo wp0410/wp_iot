@@ -12,6 +12,11 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
+# pylint: disable=wrong-import-position
+
+import sys
+sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
+
 from iot_sensor import SensorMeasurement
 from iot_sensor import IotSensor
 from iot_sensor import IotSensorHumKYES516

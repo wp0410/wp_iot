@@ -4,8 +4,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>dc0c2ad1-f31a-4580-8528-edd578c091fc</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test_iot_repository.py</StartupFile>
-    <SearchPath>..\iot_repository</SearchPath>
+    <StartupFile>test_iot_configuration.py</StartupFile>
+    <SearchPath>..\iot_repository;..\iot_hardware;..\iot_base;..\iot_configuration</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>tests</Name>
@@ -21,6 +21,12 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="test_iot_configuration.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test_iot_hardware.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test_iot_repository.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

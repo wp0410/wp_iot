@@ -12,7 +12,9 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
-try:
-    from .iot_configuration import IotConfiguration
-except ImportError:
-    from iot_configuration import IotConfiguration
+# pylint: disable=wrong-import-position
+
+import sys
+sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
+
+from iot_configuration import IotConfiguration

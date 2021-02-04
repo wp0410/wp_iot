@@ -12,11 +12,11 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
-try:
-    from .iot_message import InputProbe, InputHealth
-    from .iot_hardware_input import IotInputDevice, DigitalInputADS1115
-    from .iot_hardware_handler import IotInputDeviceHandler
-except ImportError:
-    from iot_message import InputProbe, InputHealth
-    from iot_hardware_input import IotInputDevice, DigitalInputADS1115
-    from iot_hardware_handler import IotInputDeviceHandler
+# pylint: disable=wrong-import-position
+
+import sys
+sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
+
+from iot_message import InputProbe, InputHealth
+from iot_hardware_input import IotInputDevice, DigitalInputADS1115
+from iot_hardware_handler import IotInputDeviceHandler

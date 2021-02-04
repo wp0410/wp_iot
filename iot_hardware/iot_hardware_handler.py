@@ -16,10 +16,9 @@ import inspect
 import logging
 import json
 import wp_queueing
-import iot_handler as iot_handler_base
+import iot_handler_base
 from iot_message import InputProbe
 from iot_hardware_input import DigitalInputADS1115
-
 
 class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
     """ Handler for an input hardware device (ADS1115).
@@ -107,7 +106,7 @@ class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
         poll_result = self._device.probe()
         for probe in poll_result:
             msg = wp_queueing.QueueMessage(self._data_topic(probe))
-            msg.msg_payload = probe.to_dict()
+            msg.msg_payload = probe
             self.data_topic[0].publish_single(msg)
 
     def health_timer_event(self) -> None:
@@ -117,8 +116,8 @@ class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
         self.logger.debug(mth_name)
         if self._device is None or self.health_topic is None:
             return
-        health_result = self._device.health()
+        health_result = self._device.check_health()
         msg = wp_queueing.QueueMessage(self._health_topic())
-        msg.msg_payload = health_result.to_dict()
+        msg.msg_payload = health_result
         self.health_topic[0].publish_single(msg)
         self.logger.debug('{}: publish "{}"'.format(mth_name, json.dumps(msg.msg_payload)))

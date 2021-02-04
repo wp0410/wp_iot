@@ -17,7 +17,5 @@
 import sys
 sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
 
-from iot_handler_base import IotHandlerBase
-from iot_msg_input import InputProbe
-from iot_msg_input import InputHealth
-from iot_msg_sensor import SensorMeasurement
+from iot_host import IotHost
+from iot_agent import IotAgent

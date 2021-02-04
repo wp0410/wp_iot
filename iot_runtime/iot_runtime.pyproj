@@ -2,14 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>2e8c9ab2-c71d-455a-92c7-f7e2c43d484e</ProjectGuid>
+    <ProjectGuid>77eb5b61-91de-40f2-ade3-d7dc101beb7f</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>__init__.py</StartupFile>
-    <SearchPath>..\iot_configuration;..\iot_hardware</SearchPath>
+    <StartupFile>
+    </StartupFile>
+    <SearchPath>..\iot_base;..\iot_hardware;..\iot_configuration</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>iot_base</Name>
-    <RootNamespace>iot_base</RootNamespace>
+    <Name>iot_runtime</Name>
+    <RootNamespace>iot_runtime</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,11 +21,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="iot_handler_base.py" />
-    <Compile Include="iot_msg_input.py" />
-    <Compile Include="iot_msg_sensor.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="iot_agent.py" />
+    <Compile Include="iot_host.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
