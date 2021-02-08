@@ -4,8 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>77eb5b61-91de-40f2-ade3-d7dc101beb7f</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>__init__.py</StartupFile>
     <SearchPath>..\iot_base;..\iot_hardware;..\iot_configuration</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

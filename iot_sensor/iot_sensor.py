@@ -13,11 +13,9 @@
     and limitations under the LICENSE.
 """
 import inspect
-from datetime import datetime
 import logging
-import wp_queueing
-import iot_hardware
-
+import iot_msg_input
+import iot_msg_sensor
 
 class IotSensor:
     """ Base class for an IOT sensor.
@@ -67,7 +65,7 @@ class IotSensor:
         self._logger.debug('{}: Initialized sensor ID = "{}", TYPE = "{}"'.format(
             mth_name, self._sensor_id, self._sensor_type))
 
-    def measure(self, hardware_input: iot_hardware.DigitalInputProbe) -> SensorMeasurement:
+    def measure(self, hardware_input: iot_msg_input.InputProbe) -> iot_msg_sensor.SensorMeasurement:
         """ Calculates a measured value from an input probe and returns it as a SensorMeasurement object.
 
         Parameters:
@@ -80,7 +78,7 @@ class IotSensor:
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         self._logger.debug('{}(hw_value = {}, hw_voltage = {:.5f})'.format(
             mth_name, hardware_input.value, hardware_input.voltage))
-        m_res = SensorMeasurement(self._sensor_id, self._sensor_type)
+        m_res = iot_msg_sensor.SensorMeasurement(self._sensor_id, self._sensor_type)
         m_res.hw_value = hardware_input.value
         m_res.hw_voltage = hardware_input.voltage
         m_res.msmt_value, m_res.msmt_unit = self.calculate_msmt_value(m_res.hw_value, m_res.hw_voltage)

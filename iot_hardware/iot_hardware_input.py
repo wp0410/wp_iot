@@ -15,7 +15,7 @@
 import inspect
 from datetime import datetime
 import logging
-from iot_message import InputProbe, InputHealth
+import iot_msg_input
 import board
 import busio
 import adafruit_ads1x15.ads1115 as ADS
@@ -67,7 +67,7 @@ class IotInputDevice:
         # pylint: disable=no-self-use
         return []
 
-    def check_health(self) -> InputHealth:
+    def check_health(self) -> iot_msg_input.InputHealth:
         """ Returns an empty dictionary. """
         # pylint: disable=no-self-use
         return None
@@ -138,7 +138,7 @@ class DigitalInputADS1115(IotInputDevice):
             volt_read = ads_channel.voltage
             self.logger.debug('{0}: channel = {1}: value = {2}, voltage = {3:.5f}'.format(
                 mth_name, channel_number, val_read, volt_read))
-            p_res = InputProbe(self.device_type, self.device_id, probe_time, channel_number)
+            p_res = iot_msg_input.InputProbe(self.device_type, self.device_id, probe_time, channel_number)
             p_res.value = val_read
             p_res.voltage = volt_read
             probe_result.append(p_res)
@@ -148,13 +148,13 @@ class DigitalInputADS1115(IotInputDevice):
         self.last_probe_time = probe_time
         return probe_result
 
-    def check_health(self) -> InputHealth:
+    def check_health(self) -> iot_msg_input.InputHealth:
         """ Performs a health check and returns information about the current status of the ADS1115
             component.
         """
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         self.logger.debug(mth_name)
-        h_res = InputHealth(self.device_type, self.device_id, 0)
+        h_res = iot_msg_input.InputHealth(self.device_type, self.device_id, 0)
         h_res.last_probe_time = self.last_probe_time
         h_res.num_probe_total = self.num_probes
         h_res.num_probe_detail = self.num_probe_list

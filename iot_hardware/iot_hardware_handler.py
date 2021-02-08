@@ -17,7 +17,7 @@ import logging
 import json
 import wp_queueing
 import iot_handler_base
-from iot_message import InputProbe
+import iot_msg_input
 from iot_hardware_input import DigitalInputADS1115
 
 class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
@@ -57,8 +57,7 @@ class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
         self.device_type = device_config['device_type']
         self.device_model = device_config['model']
         self.logger = logger
-
-        self.logger.debug('{}: device_id={}, device_type={}, model={}'.format(
+        self.logger.debug('{}: device_id="{}", device_type="{}", model="{}"'.format(
             mth_name, self.device_id, self.device_type, self.device_model))
 
         data_topic = None
@@ -81,7 +80,7 @@ class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
         else:
             self._device = None
 
-    def _data_topic(self, probe: InputProbe) -> str:
+    def _data_topic(self, probe: iot_msg_input.InputProbe) -> str:
         """ Constructs the MTTQ message topic for a MQTT message to be published to the broker.
 
         Parameters:

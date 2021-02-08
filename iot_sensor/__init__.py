@@ -13,10 +13,11 @@
     and limitations under the LICENSE.
 """
 # pylint: disable=wrong-import-position
-
 import sys
-sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
+if __file__.rfind('\\') < 0:
+    sys.path.append(__file__[:__file__.rfind('/') - len(__file__)])
+else:
+    sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
 
-from iot_sensor import SensorMeasurement
 from iot_sensor import IotSensor
 from iot_sensor import IotSensorHumKYES516
