@@ -38,15 +38,16 @@ class InputProbe(wp_queueing.IConvertToDict):
         to_dict : dict
             Converts the Digital Input probe into a dictionary.
     """
-    def __init__(self, device_type, device_id, probe_time, channel_no, value = 0, voltage = 0.0):
+    def __init__(self, device_type = None, device_id = None, probe_time = None, channel_no = -1,
+                 value = 0, voltage = 0.0):
         """ Constructor.
 
         Parameters:
-            device_type : str
+            device_type : str, optional
                 Type of the digital input device.
-            device_id : str
+            device_id : str, optional
                 Unique name or identifier of the Digital Input device.
-            probe_time : datetime
+            probe_time : datetime, optional
                 Timestamp of the sensor probe.
             channel_no : int
                 Number of the Digital Input channel read.
@@ -57,7 +58,10 @@ class InputProbe(wp_queueing.IConvertToDict):
         """
         self.device_id = device_id
         self.device_type = device_type
-        self.probe_time = probe_time
+        if probe_time is None:
+            self.probe_time = datetime.now()
+        else:
+            self.probe_time = probe_time
         self.channel_no = channel_no
         self.value = value
         self.voltage = voltage
@@ -86,20 +90,20 @@ class InputProbe(wp_queueing.IConvertToDict):
                 Dictionary to be converted.
         """
         if not isinstance(msg_dict, dict):
-            raise TypeError('DigitalInputProbe.from_dict(): invalid parameter type "{}"'.format(type(msg_dict)))
+            raise TypeError('InputProbe.from_dict(): invalid parameter type "{}"'.format(type(msg_dict)))
         mandatory_attr = ['class', 'device_type', 'device_id', 'probe_time', 'channel_no', 'value']
         for attr in mandatory_attr:
             if attr not in msg_dict:
-                raise ValueError('DigitalInputProbe.from_dict(): missing mandatory element "{}"'.format(attr))
-        if msg_dict['class'] != 'DigitalInputProbe':
-            raise ValueError('DigitalInputProbe.from_dict(): invalid dict class "{}"'.format(msg_dict['class']))
+                raise ValueError('InputProbe.from_dict(): missing mandatory element "{}"'.format(attr))
+        if msg_dict['class'] != 'InputProbe':
+            raise ValueError('InputProbe.from_dict(): invalid dict class "{}"'.format(msg_dict['class']))
         self.device_id = msg_dict['device_id']
         self.device_type = msg_dict['device_type']
         probe_time = msg_dict['probe_time']
         if probe_time.find('.') < 0:
             self.probe_time = datetime.strptime(probe_time, "%Y-%m-%d %H:%M:%S")
         else:
-            self.probe_time = datetime.strptime(probe_time, "%Y-%m-%d %H:%M:%S.f")
+            self.probe_time = datetime.strptime(probe_time, "%Y-%m-%d %H:%M:%S.%f")
         self.channel_no = msg_dict['channel_no']
         self.value = msg_dict['value']
         if 'voltage' in msg_dict:
@@ -130,14 +134,16 @@ class InputHealth(wp_queueing.IConvertToDict):
             Constructor
         to_dict : dict
             Converts the object to a dictionary.
+        from_dict : None
+            Converts a dictionary into an InputHealth instance, if possible.
     """
-    def __init__(self, device_type, device_id, health_status, health_time = None):
+    def __init__(self, device_type = None, device_id = None, health_status = 0, health_time = None):
         """ Constructor.
 
         Parameters:
-            device_type : str
+            device_type : str, optional
                 Type of the digital input device.
-            device_id : str
+            device_id : str, optional
                 Unique name or identifier of the Digital Input device.
             health_status : int
                 Health status of the input device.
@@ -171,3 +177,36 @@ class InputHealth(wp_queueing.IConvertToDict):
             'num_probe_total': self.num_probe_total,
             'num_probe_detail': self.num_probe_detail
         }
+
+    def from_dict(self, msg_dict: dict) -> None:
+        """ Converts a dictionary into an InputHealth instance, if possible.
+
+        Parameters:
+            msg_dict : dict
+                Dictionary to be converted.
+        """
+        if not isinstance(msg_dict, dict):
+            raise TypeError('InputHealth.from_dict(): invalid parameter type "{}"'.format(type(msg_dict)))
+        mandatory_attr = ['class', 'device_type', 'device_id', 'health_time',
+                          'health_status', 'last_probe_time', 'num_probe_total']
+        for attr in mandatory_attr:
+            if attr not in msg_dict:
+                raise ValueError('InputHealth.from_dict(): missing mandatory element "{}"'.format(attr))
+        if msg_dict['class'] != 'InputHealth':
+            raise ValueError('InputHealth.from_dict(): invalid dict class "{}"'.format(msg_dict['class']))
+        self.device_type = msg_dict['device_type']
+        self.device_id = msg_dict['device_id']
+        temp_time = msg_dict['health_time']
+        if temp_time.find('.') < 0:
+            self.health_time = datetime.strptime(temp_time, "%Y-%m-%d %H:%M:%S")
+        else:
+            self.health_time = datetime.strptime(temp_time, "%Y-%m-%d %H:%M:%S.%f")
+        self.health_status = msg_dict['health_status']
+        temp_time = msg_dict['last_probe_time']
+        if temp_time.find('.') < 0:
+            self.last_probe_time = datetime.strptime(temp_time, "%Y-%m-%d %H:%M:%S")
+        else:
+            self.last_probe_time = datetime.strptime(temp_time, "%Y-%m-%d %H:%M:%S.%f")
+        self.num_probe_total = msg_dict['num_probe_total']
+        if 'num_probe_detail' in msg_dict:
+            self.num_probe_detail = msg_dict['num_probe_detail']

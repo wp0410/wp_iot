@@ -2,14 +2,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>d32cc1c5-59d5-4a00-ae53-074ec39cd0ac</ProjectGuid>
+    <ProjectGuid>d0ed2214-9c86-4d5f-8e65-a492eebf0e50</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>__init__.py</StartupFile>
-    <SearchPath>..\iot_base;..\iot_repository</SearchPath>
+    <StartupFile>iot_recorder.py</StartupFile>
+    <SearchPath>..\iot_base</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>iot_hardware</Name>
-    <RootNamespace>iot_hardware</RootNamespace>
+    <Name>iot_recorder</Name>
+    <RootNamespace>iot_recorder</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,23 +20,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="adafruit_ads1x15\ads1115.py" />
-    <Compile Include="adafruit_ads1x15\analog_in.py" />
-    <Compile Include="board.py" />
-    <Compile Include="busio.py" />
-    <Compile Include="iot_hardware_device.py">
+    <Compile Include="iot_recorder.py" />
+    <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="iot_hardware_factory.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="iot_hardware_input.py" />
-    <Compile Include="iot_hardware_handler.py" />
-    <Compile Include="smbus2.py" />
-    <Compile Include="__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="adafruit_ads1x15\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".pylintrc" />

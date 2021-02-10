@@ -26,6 +26,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "iot_runtime", "iot_runtime\
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "var_deployment", "var_deployment\var_deployment.pyproj", "{E0DCE077-A89B-4E23-8A6D-7C7507629C04}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "iot_recorder", "iot_recorder\iot_recorder.pyproj", "{D0ED2214-9C86-4D5F-8E65-A492EEBF0E50}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,8 @@ Global
 		{77EB5B61-91DE-40F2-ADE3-D7DC101BEB7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0DCE077-A89B-4E23-8A6D-7C7507629C04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E0DCE077-A89B-4E23-8A6D-7C7507629C04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0ED2214-9C86-4D5F-8E65-A492EEBF0E50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0ED2214-9C86-4D5F-8E65-A492EEBF0E50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

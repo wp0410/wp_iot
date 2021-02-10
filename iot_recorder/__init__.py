@@ -19,9 +19,4 @@ if __file__.rfind('\\') < 0:
 else:
     sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
 
-from iot_hardware_device import IotHardwareDevice
-from iot_hardware_input import IotInputDevice
-from iot_hardware_input import DigitalInputADS1115
-from iot_hardware_handler import IotInputDeviceHandler
-from iot_hardware_handler import IotOutputDeviceHandler
-from iot_hardware_factory import IotHardwareFactory
+from iot_recorder import IotMessageRecorder

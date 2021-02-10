@@ -13,7 +13,9 @@
     and limitations under the LICENSE.
 """
 import socket
+import logging
 import iot_configuration
+import iot_hardware_factory
 import iot_agent
 
 class IotHost:
@@ -43,14 +45,11 @@ class IotHost:
                 Allows for agents to be started on a specific hosts to be split into separate process
                 groups.
         """
-        self._sqlite_db_path = sqlite_db_path
-        self._process_group = process_group
-        # self._ip_address = socket.gethostbyname(socket.gethostname())
-        self._ip_address = [l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2]
-                            if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)),
-                            s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET,
-                            socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
-        self._config = iot_configuration.IotConfiguration(self._ip_address, self._sqlite_db_path)
+        ip_address = [l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2]
+                      if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)),
+                      s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET,
+                      socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
+        self._config = iot_configuration.IotConfiguration(ip_address, sqlite_db_path, process_group)
         self._agents = dict()
 
     def __del__(self):
@@ -61,9 +60,14 @@ class IotHost:
         """ Starts the agent threads for the hardware components attached to the host. """
         hw_agents = []
         brokers = self._config.brokers
-        hw_components = self._config.hardware_components(self._config.host_id, self._process_group)
-        for hw_component in hw_components:
-            hw_agent = iot_agent.IotAgent(brokers, hw_component)
+        hw_components = self._config.hardware_components
+        for component_config, extra_info in hw_components:
+            logger = logging.getLogger(f'IOT.HW.{component_config.device_id}')
+            device = iot_hardware_factory.IotHardwareFactory.create_hardware_device(
+                component_config, extra_info, logger)
+            handler = iot_hardware_factory.IotHardwareFactory.create_hardware_handler(
+                brokers, component_config, device, logger)
+            hw_agent = iot_agent.IotAgent(handler, logger)
             hw_agents.append(hw_agent)
             hw_agent.start()
         self._agents['hardware'] = hw_agents

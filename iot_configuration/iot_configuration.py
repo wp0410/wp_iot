@@ -23,15 +23,6 @@ class IotConfiguration:
         data stored in the repository.
 
     Attributes:
-        _host_id : str
-            Unique identifier of the IOT host requesting the configuration. This will limit access to components
-            assigned to this host only.
-        _host_ip : str
-            IP address or dns name of the host requesting the configuration.
-        _last_change : str
-            Date and time of the most recent change of the configuration settings for the IOT host.
-        _sqlite_db_path : str
-            Full path name of the SQLite database file containing the settings.
 
     Properties:
         host_id : str
@@ -44,25 +35,39 @@ class IotConfiguration:
             Retrieves configuration setting dictionaries for all hardware components that are assigned to the
             current host and a specific process group.
     """
-    def __init__(self, host_ip_address: str, sqlite_db_path: str):
-        self._host_ip = host_ip_address
+    def __init__(self, host_ip_address: str, sqlite_db_path: str, process_group: int = 0):
+        self._host = None
+        self._process_group = process_group
         self._sqlite_db_path = sqlite_db_path
         with SQLiteRepository(iot_repository_host.IotHostConfig, self._sqlite_db_path) as host_repo:
-            host_list = host_repo.select_where([("host_ip", "=", self._host_ip)])
+            host_list = host_repo.select_where([("host_ip", "=", host_ip_address)])
         if len(host_list) == 0:
             raise ValueError('host(ip_address="{}": no configuration data found'.format(self._host_ip))
-        db_host = host_list[0]
-        self._host_id = db_host.host_id
-        self._last_change = db_host.store_date_str
+        self._host = host_list[0]
 
     @property
     def host_id(self) -> str:
-        """ Getter for the unique identification of the current IOT host.
+        """ Getter for the unique identification of the current IOT host. """
+        if self._host is None:
+            return None
+        return self._host.host_id
 
-        Returns:
-            Unique identification of the current IOT host.
-        """
-        return self._host_id
+    @property
+    def host_ip(self) -> str:
+        """ Getter for the IP address of the current IOT host. """
+        if self._host is None:
+            return None
+        return self._host.host_ip
+
+    @property
+    def last_change_date(self) -> str:
+        if self._host is None:
+            return None
+        return self._host.store_date_str
+
+    @property
+    def process_group(self) -> int:
+        return self._process_group
 
     @property
     def brokers(self) -> dict:
@@ -71,31 +76,20 @@ class IotConfiguration:
         Returns:
             dict:
                 A dictionary containing the broker configurations. Format:
-                { 'broker_id_1' : {
-                     'broker_id': 'broker_id_1',
-                     'broker_host': <name or ip>,
-                     'broker_port': <port>,
-                     'last_change': <date> },
-                  'broker_id_2' : {
-                     'broker_id': 'broker_id_2',
-                     'broker_host': <name or ip>,
-                     'broker_port': <port>,
-                     'last_change': <date> },
-                  ... }
+                { 'broker_id_1' : <iot_repository_broker.IotMqttBrokerConfig>,
+                  'broker_id_2' : <iot_repository_broker.IotMqttBrokerConfig>,
+                  ...
+                  'broker_id_N' : <iot_repository_broker.IotMqttBrokerConfig> }
         """
         with SQLiteRepository(iot_repository_broker.IotMqttBrokerConfig, self._sqlite_db_path) as brk_repo:
             db_brokers = brk_repo.select_all()
         broker_config = dict()
         for db_broker in db_brokers:
-            broker_config[db_broker.broker_id] = {
-                'broker_id':   db_broker.broker_id,
-                'host': db_broker.broker_host,
-                'port': db_broker.broker_port,
-                'last_change': db_broker.store_date_str
-            }
+            broker_config[db_broker.broker_id] = db_broker
         return broker_config
 
-    def hardware_components(self, process_group: int) -> list:
+    @property
+    def hardware_components(self) -> dict:
         """ Retrieves configuration setting dictionaries for all hardware components that are assigned to the
             current host and a specific process group.
 
@@ -104,14 +98,19 @@ class IotConfiguration:
                 Process group to retrieve hardware components for.
 
         Returns:
-            list
-                List of dictionaries containing the configuration setting for a hardware handler and its
-                associated hardware component.
+            dict
+                Dictionary containing the configuration setting for a hardware handler and its
+                associated hardware component. Dictionary format:
+                {
+                    'hw_elem_1': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>),
+                    'hw_elem_2': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>),
+                    ...
+                    'hw_elem_N': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>) }
         """
         with SQLiteRepository(iot_repository_host.IotHostAssignedComponent, self._sqlite_db_path) as comp_repo:
             db_assigned_comps = comp_repo.select_where(
-                [("host_id", "=", self._host_id), ("process_group", "=", process_group)])
-        hw_components = []
+                [("host_id", "=", self.host_id), ("process_group", "=", self.process_group)])
+        hw_components = dict()
         hw_template = iot_repository_hardware.IotHardwareConfig()
         with SQLiteRepository(iot_repository_hardware.IotHardwareConfig, self._sqlite_db_path) as hw_repo:
             with SQLiteRepository(iot_repository_sensor.IotSensorConfig, self._sqlite_db_path) as sensor_repo:
@@ -120,30 +119,10 @@ class IotConfiguration:
                     db_hw_component = hw_repo.select_by_key(hw_template)
                     if db_hw_component is None:
                         continue
-                    hw_config = {
-                        'config_type':      'HardwareDevice',
-                        'device_id':        db_hw_component.device_id,
-                        'host_id':          self._host_id,
-                        'device_type':      db_hw_component.device_type,
-                        'model':            db_hw_component.model,
-                        'polling_interval': db_hw_component.polling_interval,
-                        'data_topic':       { 'broker': db_hw_component.data_broker_id,
-                                              'topic': db_hw_component.data_topic },
-                        'input_topic':      { 'broker': db_hw_component.input_broker_id,
-                                              'topic': db_hw_component.input_topic },
-                        'health_topic':     { 'broker': db_hw_component.health_broker_id,
-                                              'topic': db_hw_component.health_topic },
-                        'last_change':      db_hw_component.store_date_str
-                    }
-                    if db_hw_component.if_type == "I2C":
-                        hw_config['i2c'] = {
-                            'bus_id': db_hw_component.i2c_bus_id, 'bus_address': db_hw_component.i2c_bus_address
-                        }
                     db_sensors = sensor_repo.select_where(
                         [("device_id", "=", db_hw_component.device_id)])
                     active_ports = []
                     for db_sensor in db_sensors:
                         active_ports.append(db_sensor.device_channel)
-                    hw_config['active_ports'] = active_ports
-                    hw_components.append(hw_config)
+                    hw_components[db_hw_component.device_id] = (db_hw_component, active_ports)
         return hw_components

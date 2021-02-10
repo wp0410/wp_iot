@@ -1,3 +1,5 @@
+# pylint: disable=line-too-long,missing-function-docstring,missing-module-docstring,missing-class-docstring
+
 import os
 import shutil
 import socket
@@ -97,10 +99,10 @@ class TestIotRepository(unittest.TestCase):
         self.assertIsNotNone(hosts_1)
         self.assertIsNotNone(hosts_2)
 
-    def _compare_lists(self, l1: list, l2: list) -> bool:
-        self.assertEqual(len(l1), len(l2))
-        for elem1 in l1:
-            self.assertTrue(elem1 in l2)
+    def _compare_lists(self, lst1: list, lst2: list) -> bool:
+        self.assertEqual(len(lst1), len(lst2))
+        for elem1 in lst1:
+            self.assertTrue(elem1 in lst2)
         return True
 
     def test02_hardware(self):
@@ -215,6 +217,7 @@ class TestIotRepository(unittest.TestCase):
         print('')
         hw_components = fill_db_hw_comp(self._sqlite_path)
         brokers = fill_db_broker(self._sqlite_path)
+        self.assertIsNotNone(brokers)
         sensors = fill_db_sensor(self._sqlite_path)
         self.assertIsNotNone(sensors)
         self.assertIsInstance(sensors, list)
@@ -229,12 +232,12 @@ class TestIotRepository(unittest.TestCase):
                 self.assertEqual(str(s_res_1), str(sensor))
 
             # SELECT BY device_id
-            for hw in hw_components:
+            for hw_device in hw_components:
                 num_ref = 0
                 for sensor in sensors:
-                    if sensor.device_id == hw.device_id:
+                    if sensor.device_id == hw_device.device_id:
                         num_ref += 1
-                s_res_2 = repository.select_where([("device_id", "=", hw.device_id)])
+                s_res_2 = repository.select_where([("device_id", "=", hw_device.device_id)])
                 self.assertIsNotNone(s_res_2)
                 self.assertIsInstance(s_res_2, list)
                 self.assertEqual(len(s_res_2), num_ref)

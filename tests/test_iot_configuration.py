@@ -1,3 +1,6 @@
+# pylint: disable=line-too-long,missing-module-docstring,missing-class-docstring,missing-function-docstring
+
+import os
 import unittest
 from datetime import datetime
 import shutil
@@ -8,6 +11,7 @@ import iot_repository_hardware
 import iot_repository_broker
 import iot_repository_sensor
 
+
 DB_TEMPLATE = "../iot_repository/iot.sl3"
 HOST_IP = "pi1.lcl"
 
@@ -15,11 +19,17 @@ HOST_IP = "pi1.lcl"
 class Test01Configuration(unittest.TestCase):
     def setUp(self):
         super().setUp()
+        self._host = None
+        self._hw_components = None
+        self._host_components = None
+        self._sensors = None
+        self._brokers = None
         self._sqlite_path = f"./test_iot_rep.{datetime.now().strftime('%Y%m%d.%H%M%S.%f')}.sl3"
         shutil.copyfile(DB_TEMPLATE, self._sqlite_path)
 
     def tearDown(self):
         super().tearDown()
+        os.remove(self._sqlite_path)
 
     def _fill_db(self) -> None:
         # Create HOST entry
@@ -83,10 +93,10 @@ class Test01Configuration(unittest.TestCase):
 
         # Test CONSTRUCTOR
         print('CONSTRUCTOR ...')
-        conf = iot_configuration.IotConfiguration(HOST_IP, self._sqlite_path)
+        conf = iot_configuration.IotConfiguration(HOST_IP, self._sqlite_path, 1)
         self.assertIsNotNone(conf)
         self.assertEqual(self._host.host_id, conf.host_id)
-        
+
         # Test BROKERS
         print('BROKERS ...')
         broker_config = conf.brokers
@@ -95,39 +105,29 @@ class Test01Configuration(unittest.TestCase):
         self.assertEqual(len(broker_config), 2)
         for broker in self._brokers:
             brk_conf = broker_config[broker.broker_id]
-            self.assertIsInstance(brk_conf, dict)
-            self.assertEqual(brk_conf['host'], broker.broker_host)
-            self.assertEqual(brk_conf['port'], broker.broker_port)
-            self.assertEqual(brk_conf['last_change'], broker.store_date_str)
+            self.assertIsInstance(brk_conf, iot_repository_broker.IotMqttBrokerConfig)
+            self.assertEqual(str(brk_conf), str(broker))
 
         # Test HARDWARE
         print('HARDWARE ...')
-        hw_config_list = conf.hardware_components(1)
-        self.assertIsNotNone(hw_config_list)
-        self.assertIsInstance(hw_config_list, list)
-        self.assertEqual(len(hw_config_list), 2)
-        for hw_config in hw_config_list:
-            self.assertIsInstance(hw_config, dict)
-            self.assertEqual(hw_config['config_type'], 'HardwareDevice')
-            hw_comp = self._find_device(hw_config['device_id'])
+        hw_config_dict = conf.hardware_components
+        self.assertIsNotNone(hw_config_dict)
+        self.assertIsInstance(hw_config_dict, dict)
+        self.assertEqual(len(hw_config_dict), 2)
+        for device_id in hw_config_dict:
+            self.assertIsInstance(device_id, str)
+            conf_tuple = hw_config_dict[device_id]
+            self.assertIsInstance(conf_tuple, tuple)
+            hw_config, extra_data = conf_tuple
+            self.assertIsInstance(hw_config, iot_repository_hardware.IotHardwareConfig)
+            self.assertIsInstance(extra_data, list)
+            hw_comp = self._find_device(hw_config.device_id)
             self.assertIsNotNone(hw_comp)
             self.assertIsInstance(hw_comp, iot_repository_hardware.IotHardwareConfig)
-            self.assertEqual(hw_config['device_id'], hw_comp.device_id)
-            self.assertEqual(hw_config['device_type'], hw_comp.device_type)
-            self.assertEqual(hw_config['model'], hw_comp.model)
-            self.assertEqual(hw_config['polling_interval'], hw_comp.polling_interval)
-            self.assertEqual(hw_config['data_topic']['broker'], hw_comp.data_broker_id)
-            self.assertEqual(hw_config['data_topic']['topic'], hw_comp.data_topic)
-            self.assertEqual(hw_config['input_topic']['broker'], hw_comp.input_broker_id)
-            self.assertEqual(hw_config['input_topic']['topic'], hw_comp.input_topic)
-            self.assertEqual(hw_config['health_topic']['broker'], hw_comp.health_broker_id)
-            self.assertEqual(hw_config['health_topic']['topic'], hw_comp.health_topic)
-            self.assertEqual(hw_config['i2c']['bus_id'], hw_comp.i2c_bus_id)
-            self.assertEqual(hw_config['i2c']['bus_address'], hw_comp.i2c_bus_address)
+            self.assertEqual(str(hw_config), str(hw_comp))
             for sensor in self._sensors:
                 if sensor.device_id == hw_comp.device_id:
-                    self.assertTrue(sensor.device_channel in hw_config['active_ports'])
-            self.assertEqual(hw_config['last_change'], hw_comp.store_date_str)
+                    self.assertTrue(sensor.device_channel in extra_data)
 
     def _find_device(self, device_id: str) -> iot_repository_hardware.IotHardwareConfig:
         for hw_comp in self._hw_components:
@@ -137,4 +137,3 @@ class Test01Configuration(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=5)
-

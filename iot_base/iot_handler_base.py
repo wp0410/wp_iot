@@ -41,26 +41,26 @@ class IotHandlerBase:
     """
     # pylint: disable=too-many-instance-attributes
     def __init__(self, polling_interval: int, health_check_interval: int,
-                 data_topic: tuple, input_topic: tuple, health_topic: tuple):
+                 mqtt_data: tuple = None, mqtt_input: tuple = None, mqtt_health: tuple = None):
         """ Constructor.
 
         Parameters:
             polling_interval: int
                 Interval in seconds for the invocation of the polling timer event.
-            data_topic : tuple
+            mqtt_data : tuple
                 Tuple containing two elements (<broker>, <prefix>), where:
                     <broker>: wp_queueing.MqttProducer
                         Session to a broker for publishing data messages.
                     <prefix>: str
                         Prefix for constructing the topic to which data messages shall be published.
-            input_topic : tuple
-                Dictionary containing two elements (<broker>, <prefix>), where:
+            mqtt_input : tuple
+                Tuple containing two elements (<broker>, <prefix>), where:
                     <broker>: wp_queueing.MqttConsumer
                         Session to a broker for subscribing to input messages.
                     <prefix>: str
                         Prefix for constructing the topic to subsribe to for receiving input messages.
-            health_topic : dict
-                Dictionary containing two elements (<broker>, <prefix>), where:
+            mqtt_health : tuple
+                Tuple containing two elements (<broker>, <prefix>), where:
                     <broker>: wp_queueing.MqttProducer
                         Session to a broker for publishing health check messages.
                     <prefix>: str
@@ -72,9 +72,9 @@ class IotHandlerBase:
         self._health_check_timer = -1
         self._last_tick_tm = None
         self._stopped = False
-        self.data_topic = data_topic
-        self.health_topic = health_topic
-        self.input_topic = input_topic
+        self.mqtt_data = mqtt_data
+        self.mqtt_health = mqtt_health
+        self.mqtt_input = mqtt_input
 
     def init_time(self) -> None:
         """ Initializes the internal time information and the polling timer.
@@ -86,10 +86,11 @@ class IotHandlerBase:
         tmin *= int(self._polling_interval / 60)
         tsec = 0
         self._polling_timer = tmin * 60 + tsec - self._last_tick_tm.minute * 60 - self._last_tick_tm.second
-        tmin = int((self._last_tick_tm.minute * 60 + self._health_check_int) / self._health_check_int)
-        tmin *= int(self._health_check_int / 60)
-        tsec = 1
-        self._health_check_timer = tmin * 60 + tsec - self._last_tick_tm.minute * 60 - self._last_tick_tm.second
+        if self._health_check_int > 0:
+            tmin = int((self._last_tick_tm.minute * 60 + self._health_check_int) / self._health_check_int)
+            tmin *= int(self._health_check_int / 60)
+            tsec = 1
+            self._health_check_timer = tmin * 60 + tsec - self._last_tick_tm.minute * 60 - self._last_tick_tm.second
 
     def time_tick(self) -> None:
         """ To be called (in regular intervals) to adjust the internal time information and the polling timer.
@@ -100,12 +101,13 @@ class IotHandlerBase:
         tick_delta = self._last_tick_tm - cur_tm
         num_sec = tick_delta.seconds
         self._polling_timer -= num_sec
-        self._health_check_timer -= num_sec
         self._last_tick_tm = cur_tm
         if self._polling_timer <= 0:
             self.polling_timer_event()
-        if self._health_check_timer <= 0:
-            self.health_timer_event()
+        if self._health_check_int > 0:
+            self._health_check_timer -= num_sec
+            if self._health_check_timer <= 0:
+                self.health_timer_event()
 
     def stop(self) -> None:
         """ Stops the handler. To clean up internal components, this method must be overloaded in sub-classes.
