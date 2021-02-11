@@ -16,10 +16,12 @@ from typing import Any
 from datetime import datetime
 import json
 import uuid
+import logging
 import wp_queueing
 import wp_repository
 import iot_handler_base
 import iot_msg_input
+import iot_repository_broker
 
 class IotRecorderMsg(wp_repository.RepositoryElement):
     """ Model for the general part of received messages to be stored in a repository. Derived from
@@ -108,7 +110,7 @@ class IotRecorderGenericMsg(wp_repository.RepositoryElement):
             Create printable character string from object.
     """
     _attribute_map = wp_repository.AttributeMap(
-        "iot_recorder_gen_msg",
+        "iot_recorder_generic",
         wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
         wp_repository.AttributeMapping(1, "msg_payload", "msg_payload", str),
         wp_repository.AttributeMapping(2, "store_date", "store_date", datetime))
@@ -246,7 +248,7 @@ class IotRecorderInputHealth(wp_repository.RepositoryElement):
     """
     # pylint: disable=too-many-instance-attributes
     _attribute_map = wp_repository.AttributeMap(
-        "iot_recorder_input_probe",
+        "iot_recorder_input_health",
         wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
         wp_repository.AttributeMapping(1, "device_type", "device_type", str),
         wp_repository.AttributeMapping(2, "device_id", "device_id", str),
@@ -300,8 +302,12 @@ class IotMessageRecorder(iot_handler_base.IotHandlerBase):
             Full path name of the SQLite database where the messages shall be stored.
 
     Properties:
-        handler_id : str
+        device_id : str
             Getter for the unique identifier of the recorder.
+        device_type : str
+            Getter for the "device type". Implemented for compatibility reasons.
+        device_model : str
+            Getter for the "device model". Implemented for compatibility reasons.
 
     Methods:
         IotMessageRecorder : None
@@ -311,11 +317,12 @@ class IotMessageRecorder(iot_handler_base.IotHandlerBase):
         message : None
             Function called by the MQTT broker session handler when a message is received.
     """
-    def __init__(self, broker_config: dict, topics: Any, sqlite_db_path: str):
+    def __init__(self, broker_config: iot_repository_broker.IotMqttBrokerConfig, 
+                 topics: Any, sqlite_db_path: str, logger: logging.Logger):
         """ Constructor.
 
         Parameters:
-            broker_config : dict
+            broker_config : iot_repository_broker.IotMqttBrokerConfig
                 Configuration for the MQTT broker to connect to.
             topics : Any (str or list)
                 Topics to subscribe to.
@@ -323,25 +330,33 @@ class IotMessageRecorder(iot_handler_base.IotHandlerBase):
                 Full path name of the target SQLite database.
         """
         super().__init__(5, 600, None, None, None)
-        self._mqtt_consumer = wp_queueing.MQTTConsumer(broker_config['host'], broker_config['port'])
+        self._logger = logger
+        self._mqtt_consumer = wp_queueing.MQTTConsumer(
+            broker_host = broker_config.broker_host,
+            broker_port = broker_config.broker_port,
+            logger = self._logger)
         self._mqtt_consumer.owner = self
-        topic_list = []
         if isinstance(topics, list):
-            for topic in topics:
-                if isinstance(topic, tuple):
-                    topic_list.append(topic)
-                else:
-                    topic_list.append((topic, 0))
+            self._mqtt_consumer.topics = topics
         else:
-            topic_list.append((topics, 0))
-        self._mqtt_consumer.topics = topic_list
+            self._mqtt_consumer.topics = [topics]
         self._sqlite_db_path = sqlite_db_path
         self._recorder_id = f'Rec.{broker_config["broker_id"]}.{str(uuid.uuid4()).replace("-","")}'
 
     @property
-    def handler_id(self) -> str:
+    def device_id(self) -> str:
         """ Getter for the unique identifier of the recorder. """
         return self._recorder_id
+
+    @property
+    def device_type(self) -> str:
+        """ Getter for the "device type". Implemented for compatibility reasons. """
+        return "IotMessageRecorder"
+
+    @property
+    def device_model(self) -> str:
+        """ Getter for the "device model". Implemented for compatibility reasons. """
+        return self.device_type
 
     def polling_timer_event(self) -> None:
         """ Function (overloaded from super() class) that will be called when the polling timer expires. """

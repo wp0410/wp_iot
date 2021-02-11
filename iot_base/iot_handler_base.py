@@ -13,6 +13,7 @@
     and limitations under the LICENSE.
 """
 from datetime import datetime
+from datetime import timedelta
 
 class IotHandlerBase:
     """ A 'handler' is a controlling element for a hardware element, a sensor or an actor.
@@ -82,15 +83,11 @@ class IotHandlerBase:
         if self._stopped:
             return
         self._last_tick_tm = datetime.now()
-        tmin = int((self._last_tick_tm.minute * 60 + self._polling_interval) / self._polling_interval)
-        tmin *= int(self._polling_interval / 60)
-        tsec = 0
-        self._polling_timer = tmin * 60 + tsec - self._last_tick_tm.minute * 60 - self._last_tick_tm.second
+        first_ev_time = datetime(self._last_tick_tm.year, self._last_tick_tm.month, self._last_tick_tm.day,
+                                 self._last_tick_tm.hour, self._last_tick_tm.minute, 0) + timedelta(seconds = 60)
+        self._polling_timer = (first_ev_time - self._last_tick_tm).seconds
         if self._health_check_int > 0:
-            tmin = int((self._last_tick_tm.minute * 60 + self._health_check_int) / self._health_check_int)
-            tmin *= int(self._health_check_int / 60)
-            tsec = 1
-            self._health_check_timer = tmin * 60 + tsec - self._last_tick_tm.minute * 60 - self._last_tick_tm.second
+            self._health_check_timer = self._polling_timer
 
     def time_tick(self) -> None:
         """ To be called (in regular intervals) to adjust the internal time information and the polling timer.
@@ -98,7 +95,7 @@ class IotHandlerBase:
         if self._stopped:
             return
         cur_tm = datetime.now()
-        tick_delta = self._last_tick_tm - cur_tm
+        tick_delta = cur_tm - self._last_tick_tm
         num_sec = tick_delta.seconds
         self._polling_timer -= num_sec
         self._last_tick_tm = cur_tm

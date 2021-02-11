@@ -140,7 +140,7 @@ class DigitalInputADS1115(IotInputDevice):
             self.logger.debug('{0}: channel = {1}: value = {2}, voltage = {3:.5f}'.format(
                 mth_name, channel_number, val_read, volt_read))
             p_res = iot_msg_input.InputProbe(
-                device_type = self.device_type, device_id = self.device_id,
+                device_type = self.model, device_id = self.device_id,
                 probe_time = probe_time, channel_no = channel_number)
             p_res.value = val_read
             p_res.voltage = volt_read
@@ -157,7 +157,7 @@ class DigitalInputADS1115(IotInputDevice):
         """
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         self.logger.debug(mth_name)
-        h_res = iot_msg_input.InputHealth(device_type = self.device_type, device_id = self.device_id)
+        h_res = iot_msg_input.InputHealth(device_type = self.model, device_id = self.device_id)
         h_res.last_probe_time = self.last_probe_time
         h_res.num_probe_total = self.num_probes
         h_res.num_probe_detail = self.num_probe_list
