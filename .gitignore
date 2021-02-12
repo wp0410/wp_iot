@@ -345,3 +345,4 @@ healthchecksdb
 /build/lib
 /dist
 /wp_iot.egg-info
+/var_deployment/Output Files

@@ -22,6 +22,9 @@
   <ItemGroup>
     <Compile Include="adafruit_ads1x15\ads1115.py" />
     <Compile Include="adafruit_ads1x15\analog_in.py" />
+    <Compile Include="adafruit_ads1x15\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="board.py" />
     <Compile Include="busio.py" />
     <Compile Include="iot_hardware_device.py">

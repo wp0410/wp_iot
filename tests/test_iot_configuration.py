@@ -5,7 +5,7 @@ import unittest
 from datetime import datetime
 import shutil
 import wp_repository
-import iot_configuration
+import iot_config
 import iot_repository_host
 import iot_repository_hardware
 import iot_repository_broker
@@ -93,7 +93,7 @@ class Test01Configuration(unittest.TestCase):
 
         # Test CONSTRUCTOR
         print('CONSTRUCTOR ...')
-        conf = iot_configuration.IotConfiguration(HOST_IP, self._sqlite_path, 1)
+        conf = iot_config.IotConfiguration(HOST_IP, self._sqlite_path, 1)
         self.assertIsNotNone(conf)
         self.assertEqual(self._host.host_id, conf.host_id)
 

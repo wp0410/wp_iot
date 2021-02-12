@@ -22,15 +22,29 @@ import iot_repository_sensor
 
 class IotDeployment01:
     """ Database and Config File for Test Deployment on PI-249 with one KYES516 sensor connected to an ADS1115 """
-    def __init__(self, sqlite_db_template: str):
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, config_db_template: str, statistics_db_template: str = None,
+                 logger_config_template: str = None, target_app_name: str = None):
         """ Constructor. """
-        self._sqlite_db_path = "./iot_env_01.sl3"
-        shutil.copyfile(sqlite_db_template, self._sqlite_db_path)
+        self._config_db_path = "iot_env_01.sl3"
+        shutil.copyfile(config_db_template, self._config_db_path)
+        if statistics_db_template is not None:
+            self._stat_db_path = "iot_statistics.sl3"
+            shutil.copyfile(statistics_db_template, self._stat_db_path)
+        else:
+            self._stat_db_path = None
+        if logger_config_template is not None:
+            with open(logger_config_template) as logger_fh:
+                self._logger_config = logger_fh.read()
+        else:
+            self._logger_config = None
+        self._target_app_name = target_app_name
         self._host = None
         self._brokers = []
         self._hardware_components = []
         self._host_assignments = []
         self._sensors = []
+        self._process_groups = [0]
 
     def create_db_hardware_components(self) -> None:
         """ Creates the ADS1115 settings in the DB. """
@@ -53,6 +67,9 @@ class IotDeployment01:
         """ Assigns the ADS1115 to PI-249. """
         host_comp_rows = [['PI-249', 'PI-249.ADS1115.1', 0, self._now()]]
         self._host_assignments = self._create_db_items(iot_repository_host.IotHostAssignedComponent, host_comp_rows)
+        for assigned in self._host_assignments:
+            if assigned.process_group not in self._process_groups:
+                self._process_groups.append(assigned.process_group)
 
     def create_db_sensors(self) -> None:
         """ Creates an entry for the KEYS516 sensor (needed to calculate the active port list of the ADS1115). """
@@ -60,7 +77,7 @@ class IotDeployment01:
                         'PI-250-1883', 'data/sensor', 'PI-250-1883', 'health/sensor', self._now()]]
         self._sensors = self._create_db_items(iot_repository_sensor.IotSensorConfig, sensor_rows)
 
-    def create_db(self):
+    def create_config_db(self):
         """ Creates the database. """
         self.create_db_broker()
         self.create_db_host()
@@ -71,13 +88,29 @@ class IotDeployment01:
     def _create_db_items(self, item_type: type, item_rows: list) -> list:
         """ Inserts items into the database. """
         res_list = []
-        with wp_repository.SQLiteRepository(item_type, self._sqlite_db_path) as repository:
+        with wp_repository.SQLiteRepository(item_type, self._config_db_path) as repository:
             for row in item_rows:
                 db_item = item_type()
                 db_item.load_row(row)
                 repository.insert(db_item)
                 res_list.append(db_item)
         return res_list
+
+    def create_config_file(self) -> None:
+        """ Creates the application config file. """
+        if self._target_app_name is None:
+            return
+        with open(f'{self._target_app_name}.config.json', "w") as config_fh:
+            if self._logger_config is not None:
+                self._logger_config = self._logger_config.replace('<rotating_file_name>',f'{self._target_app_name}.log')
+                config_fh.write(f'"logging": {self._logger_config}\n')
+            config_fh.write(f'"config_db_path": "{self._config_db_path}"\n')
+            if self._stat_db_path is not None:
+                config_fh.write(f'"statistics_db_path": "{self._stat_db_path}"\n')
+            if self._process_groups is None:
+                config_fh.write('"process_groups": [0]\n')
+            else:
+                config_fh.write(f'"process_groups": {str(self._process_groups)}')
 
     @staticmethod
     def _now() -> str:
@@ -86,5 +119,10 @@ class IotDeployment01:
 
 
 if __name__ == "__main__":
-    deployment = IotDeployment01("../iot_repository/iot.sl3")
-    deployment.create_db()
+    deployment = IotDeployment01(
+        config_db_template = "../iot_repository/iot.sl3",
+        statistics_db_template = "../iot_recorder/iot_rec.sl3",
+        logger_config_template = "logger_config.json",
+        target_app_name = "iot_base_app")
+    deployment.create_config_db()
+    deployment.create_config_file()

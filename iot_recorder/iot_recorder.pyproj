@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>d0ed2214-9c86-4d5f-8e65-a492eebf0e50</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>iot_recorder.py</StartupFile>
+    <StartupFile>iot_msg_recorder.py</StartupFile>
     <SearchPath>..\iot_base;..\iot_repository</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -20,7 +20,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="iot_recorder.py" />
+    <Compile Include="iot_msg_recorder.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>

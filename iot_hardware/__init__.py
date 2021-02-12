@@ -15,9 +15,20 @@
 # pylint: disable=wrong-import-position
 import sys
 if __file__.rfind('\\') < 0:
-    sys.path.append(__file__[:__file__.rfind('/') - len(__file__)])
+    DELIMITER = '/'
 else:
-    sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
+    DELIMITER = '\\'
+
+current_dir = __file__[:__file__.rfind(DELIMITER) - len(__file__)]
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+parent_dir = current_dir[:current_dir.rfind(DELIMITER)]
+iot_base_path = f"{parent_dir}{DELIMITER}iot_base"
+if iot_base_path not in sys.path:
+    sys.path.append(iot_base_path)
+iot_repository_path = f"{parent_dir}{DELIMITER}iot_repository"
+if iot_repository_path not in sys.path:
+    sys.path.append(iot_repository_path)
 
 from iot_hardware_device import IotHardwareDevice
 from iot_hardware_input import IotInputDevice

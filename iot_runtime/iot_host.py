@@ -14,8 +14,9 @@
 """
 import socket
 import logging
-import iot_configuration
+import iot_config
 import iot_hardware_factory
+import iot_recorder
 import iot_agent
 
 class IotHost:
@@ -28,12 +29,16 @@ class IotHost:
         start_agents: None
             Starts the agent threads for all IOT components attached to the host, belonging to the
             correct process group.
-        start_hardware_agents : None
-            Starts the agent threads for the hardware components attached to the host.
         stop_agents : None
             Stops all currently running agent threads.
         stop_hardware_agents: None
             Stops all currently running hardware agent threads.
+        start_hardware_agents : None
+            Starts the agent threads for the hardware components attached to the host.
+        start_data_recording : None
+            Starts the recorders for recording of messages published to data topics.
+        stop_data_recording : None
+            Stops the recorders for recording of messsages published to data topics.
     """
     def __init__(self, sqlite_db_path: str, process_group: int = 0):
         """ Constructor.
@@ -49,19 +54,60 @@ class IotHost:
                       if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)),
                       s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET,
                       socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
-        self._config = iot_configuration.IotConfiguration(ip_address, sqlite_db_path, process_group)
+        self._config = iot_config.IotConfiguration(ip_address, sqlite_db_path, process_group)
         self._agents = dict()
+        self._data_recording_started = False
 
     def __del__(self):
         """ Destructor. """
         self.stop_agents()
+
+    def start_data_recording(self, recorder_db_path: str) -> None:
+        """ Starts the recorders for recording of messages published to data topics.
+
+        Parameters:
+            recorder_db_path : str
+                Full path name of the SQLite database to store the recorded messages.
+        """
+        if self._data_recording_started:
+            return
+        brokers = self._config.brokers
+        recorder_config = dict()
+        for broker_id in brokers:
+            recorder_config[broker_id] = []
+        hw_devices = self._config.hardware_components
+        for device_id in hw_devices:
+            device_conf = hw_devices[device_id][0]
+            if device_conf.data_topic is not None and len(device_conf.data_topic.strip()) > 0:
+                recorder_config[device_conf.data_broker_id].append(f'{device_conf.data_topic}/#')
+        recorder_agents = []
+        for broker_id in recorder_config:
+            if len(recorder_config[broker_id]) > 0:
+                logger = logging.getLogger(f'IOT.REC.{broker_id}')
+                recorder = iot_recorder.IotMessageRecorder(
+                    brokers[broker_id], recorder_config[broker_id], recorder_db_path, logger)
+                rec_agent = iot_agent.IotAgent(recorder, logger)
+                recorder_agents.append(rec_agent)
+                rec_agent.start()
+        self._agents['data_recorder'] = recorder_agents
+        self._data_recording_started = True
+
+    def stop_data_recording(self) -> None:
+        """ Stops the recorders for recording of messsages published to data topics. """
+        if self._data_recording_started:
+            recorders = self._agents['data_recorder']
+            for agent in recorders:
+                if not agent.stop():
+                    agent.kill()
+            self._agents['data_recorder'] = []
 
     def start_hardware_agents(self) -> None:
         """ Starts the agent threads for the hardware components attached to the host. """
         hw_agents = []
         brokers = self._config.brokers
         hw_components = self._config.hardware_components
-        for component_config, extra_info in hw_components:
+        for device_id in hw_components:
+            component_config, extra_info = hw_components[device_id]
             logger = logging.getLogger(f'IOT.HW.{component_config.device_id}')
             device = iot_hardware_factory.IotHardwareFactory.create_hardware_device(
                 component_config, extra_info, logger)
@@ -88,3 +134,4 @@ class IotHost:
     def stop_agents(self) -> None:
         """ Stops all currently running agent threads. """
         self.stop_hardware_agents()
+        self.stop_data_recording()

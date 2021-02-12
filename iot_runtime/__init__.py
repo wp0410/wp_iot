@@ -15,9 +15,29 @@
 # pylint: disable=wrong-import-position
 import sys
 if __file__.rfind('\\') < 0:
-    sys.path.append(__file__[:__file__.rfind('/') - len(__file__)])
+    DELIMITER = '/'
 else:
-    sys.path.append(__file__[:__file__.rfind('\\') - len(__file__)])
+    DELIMITER = '\\'
+
+current_dir = __file__[:__file__.rfind(DELIMITER) - len(__file__)]
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+parent_dir = current_dir[:current_dir.rfind(DELIMITER)]
+iot_base_path = f"{parent_dir}{DELIMITER}iot_base"
+if iot_base_path not in sys.path:
+    sys.path.append(iot_base_path)
+iot_hardware_path = f"{parent_dir}{DELIMITER}iot_hardware"
+if iot_hardware_path not in sys.path:
+    sys.path.append(iot_hardware_path)
+iot_configuration_path = f"{parent_dir}{DELIMITER}iot_configuration"
+if iot_configuration_path not in sys.path:
+    sys.path.append(iot_configuration_path)
+iot_recorder_path = f"{parent_dir}{DELIMITER}iot_recorder"
+if iot_recorder_path not in sys.path:
+    sys.path.append(iot_recorder_path)
+iot_repository_path = f"{parent_dir}{DELIMITER}iot_repository"
+if iot_repository_path not in sys.path:
+    sys.path.append(iot_repository_path)
 
 from iot_host import IotHost
 from iot_agent import IotAgent

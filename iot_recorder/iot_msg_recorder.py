@@ -51,11 +51,11 @@ class IotRecorderMsg(wp_repository.RepositoryElement):
     """
     _attribute_map = wp_repository.AttributeMap(
         "iot_recorder_msg",
-        wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
-        wp_repository.AttributeMapping(1, "msg_topic", "msg_topic", str),
-        wp_repository.AttributeMapping(2, "msg_timestamp", "msg_timestamp", str),
-        wp_repository.AttributeMapping(3, "msg_class", "msg_class", str),
-        wp_repository.AttributeMapping(4, "store_date", "store_date", datetime))
+        [wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
+         wp_repository.AttributeMapping(1, "msg_topic", "msg_topic", str),
+         wp_repository.AttributeMapping(2, "msg_timestamp", "msg_timestamp", str),
+         wp_repository.AttributeMapping(3, "msg_class", "msg_class", str),
+         wp_repository.AttributeMapping(4, "store_date", "store_date", datetime)])
 
     def __init__(self, qmsg: wp_queueing.QueueMessage = None):
         """ Constructor. """
@@ -111,9 +111,9 @@ class IotRecorderGenericMsg(wp_repository.RepositoryElement):
     """
     _attribute_map = wp_repository.AttributeMap(
         "iot_recorder_generic",
-        wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
-        wp_repository.AttributeMapping(1, "msg_payload", "msg_payload", str),
-        wp_repository.AttributeMapping(2, "store_date", "store_date", datetime))
+        [wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
+         wp_repository.AttributeMapping(1, "msg_payload", "msg_payload", str),
+         wp_repository.AttributeMapping(2, "store_date", "store_date", datetime)])
 
     def __init__(self, msg_id: str, msg_payload: dict):
         """ Constructor. """
@@ -175,14 +175,14 @@ class IotRecorderInputProbe(wp_repository.RepositoryElement):
     # pylint: disable=too-many-instance-attributes
     _attribute_map = wp_repository.AttributeMap(
         "iot_recorder_input_probe",
-        wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
-        wp_repository.AttributeMapping(1, "device_type", "device_type", str),
-        wp_repository.AttributeMapping(2, "device_id", "device_id", str),
-        wp_repository.AttributeMapping(3, "probe_time", "probe_time", str),
-        wp_repository.AttributeMapping(4, "channel_no", "channel_no", int),
-        wp_repository.AttributeMapping(5, "value", "value", int),
-        wp_repository.AttributeMapping(6, "voltage", "voltage", float),
-        wp_repository.AttributeMapping(7, "store_date", "store_date", datetime))
+        [wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
+         wp_repository.AttributeMapping(1, "device_type", "device_type", str),
+         wp_repository.AttributeMapping(2, "device_id", "device_id", str),
+         wp_repository.AttributeMapping(3, "probe_time", "probe_time", str),
+         wp_repository.AttributeMapping(4, "channel_no", "channel_no", int),
+         wp_repository.AttributeMapping(5, "value", "value", int),
+         wp_repository.AttributeMapping(6, "voltage", "voltage", float),
+         wp_repository.AttributeMapping(7, "store_date", "store_date", datetime)])
 
     def __init__(self, msg_id: str, msg: iot_msg_input.InputProbe):
         """ Constructor. """
@@ -249,15 +249,15 @@ class IotRecorderInputHealth(wp_repository.RepositoryElement):
     # pylint: disable=too-many-instance-attributes
     _attribute_map = wp_repository.AttributeMap(
         "iot_recorder_input_health",
-        wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
-        wp_repository.AttributeMapping(1, "device_type", "device_type", str),
-        wp_repository.AttributeMapping(2, "device_id", "device_id", str),
-        wp_repository.AttributeMapping(3, "health_time", "health_time", str),
-        wp_repository.AttributeMapping(4, "health_status", "health_status", int),
-        wp_repository.AttributeMapping(5, "last_probe_time", "last_probe_time", str),
-        wp_repository.AttributeMapping(6, "num_probe_total", "num_probe_total", int),
-        wp_repository.AttributeMapping(7, "num_probe_detail", "num_probe_detail", str),
-        wp_repository.AttributeMapping(8, "store_date", "store_date", datetime))
+        [wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
+         wp_repository.AttributeMapping(1, "device_type", "device_type", str),
+         wp_repository.AttributeMapping(2, "device_id", "device_id", str),
+         wp_repository.AttributeMapping(3, "health_time", "health_time", str),
+         wp_repository.AttributeMapping(4, "health_status", "health_status", int),
+         wp_repository.AttributeMapping(5, "last_probe_time", "last_probe_time", str),
+         wp_repository.AttributeMapping(6, "num_probe_total", "num_probe_total", int),
+         wp_repository.AttributeMapping(7, "num_probe_detail", "num_probe_detail", str),
+         wp_repository.AttributeMapping(8, "store_date", "store_date", datetime)])
 
     def __init__(self, msg_id: str, msg: iot_msg_input.InputHealth):
         """ Constructor. """
