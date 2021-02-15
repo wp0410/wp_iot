@@ -22,11 +22,13 @@ import iot_hardware_input
 import iot_hardware_handler
 
 class IotHardwareFactory:
-    """ Factory class for instantiating hardware components and hardware handlers.
+    """ Factory class for creating hardware components and hardware handlers.
 
     Methods:
         create_hardware_device : iot_hardware_device.IotHardwareDevice, static
             Creates a hardware device object based on the given configuration.
+        create_hardware_handler : iot_handler_base.IotHandlerBase, static.
+            Creates a hardware handler using the given brokers and controlling the given device.
     """
     @staticmethod
     def create_hardware_device(hw_config: iot_repository_hardware.IotHardwareConfig,

@@ -21,6 +21,7 @@ import wp_queueing
 import wp_repository
 import iot_handler_base
 import iot_msg_input
+import iot_msg_sensor
 import iot_repository_broker
 
 class IotRecorderMsg(wp_repository.RepositoryElement):
@@ -210,7 +211,91 @@ class IotRecorderInputProbe(wp_repository.RepositoryElement):
             f'msg_id: "{self.msg_id}"', f'device_type: "{self.device_type}"',
             f'device_id: "{self.device_id}"', f'probe_time: "{self.probe_time}"',
             f'channel_no: "{self.channel_no}"', f'value: "{self.value}"',
-            f'voltage: "{self.voltage}"', f'store_date: "{self.store_date_str}"')
+            f'voltage: "{self.voltage:.5f}"', f'store_date: "{self.store_date_str}"')
+
+
+class IotRecorderSensorMsg(wp_repository.RepositoryElement):
+    """ Model for "SensorMeasurement" messages received from the MQTT broker.
+
+    Attributes:
+        msg_id : str
+            Unique identifier of a received queueing message.
+        sensor_type : str
+            Type of the sensor that created the measurement message.
+        sensor_id : str
+            Unique identifier of the sensor that created the measurement message.
+        msmt_time : str
+            Date and time when the measurement values were calculated.
+        hw_value : int
+            Input value for the sensor measurement.
+        hw_voltage : float
+            Measured voltage.
+        msmt_unit : str
+            Unit of the measurement value.
+        msmt_value : float
+            Calculated measurement value in the given unit.
+        store_date : datetime
+            Date and time when the record was stored in the repository.
+
+    Properties:
+        store_date_str : str
+            Getter for the last change date and time as string.
+
+    Methods:
+        IotRecorderSensorMsg
+            Constructor.
+        __str__ : str
+            Create printable character string from object.
+    """
+    # pylint: disable=too-many-instance-attributes
+    _attribute_map = wp_repository.AttributeMap(
+        "iot_recorder_sensor_msmt",
+        [wp_repository.AttributeMapping(0, "msg_id", "msg_id", str, db_key = 1),
+         wp_repository.AttributeMapping(1, "sensor_type", "sensor_type", str),
+         wp_repository.AttributeMapping(2, "sensor_id", "sensor_id", str),
+         wp_repository.AttributeMapping(3, "msmt_time", "msmt_time", str),
+         wp_repository.AttributeMapping(4, "hw_value", "hw_value", int),
+         wp_repository.AttributeMapping(5, "hw_voltage", "hw_voltage", float),
+         wp_repository.AttributeMapping(6, "msmt_unit", "msmt_unit", str),
+         wp_repository.AttributeMapping(7, "msmt_value", "msmt_value", float),
+         wp_repository.AttributeMapping(8, "store_date", "store_date", datetime)])
+
+    def __init__(self, msg_id: str, msg: iot_msg_sensor.SensorMsmt):
+        """ Constructor.
+
+        Parameters:
+            msg_id : str
+                Unique identifier of the received QueueMessage.
+            msg : iot_msg_sensor.SensorMeasurement
+                Payload of the received QueueMessage to be stored in the repository.
+        """
+        self.msg_id = msg_id
+        self.sensor_type = msg.sensor_type
+        self.sensor_id = msg.sensor_id
+        self.msmt_time = msg.msmt_time
+        self.hw_value = msg.hw_value
+        self.hw_voltage = msg.hw_voltage
+        self.msmt_unit = msg.msmt_unit
+        self.msmt_value = msg.msmt_value
+        self.store_date = datetime.now()
+
+    @property
+    def store_date_str(self) -> str:
+        """ Getter for the last change date and time as string.
+
+        Returns:
+            store_date converted to a string.
+        """
+        return self.store_date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def __str__(self) -> str:
+        """ Create printable character string from object. """
+        return 'IotRecorderSensorMsg({} {} {} {} {} {} {} {} {})'.format(
+            f'msg_id: "{self.msg_id}"', f'sensor_type: "{self.sensor_type}"',
+            f'sensor_id: "{self.sensor_id}"', f'msmt_time: "{self.msmt_time}"',
+            f'hw_value: "{self.hw_value}"', f'hw_voltage: "{self.hw_voltage:.5f}"',
+            f'msmt_unit: "{self.msmt_unit}"', f'msmt_value: "{self.msmt_value:.2f}"',
+            f'store_date: "{self.store_date_str}"')
 
 
 class IotRecorderInputHealth(wp_repository.RepositoryElement):
@@ -317,7 +402,7 @@ class IotMessageRecorder(iot_handler_base.IotHandlerBase):
         message : None
             Function called by the MQTT broker session handler when a message is received.
     """
-    def __init__(self, broker_config: iot_repository_broker.IotMqttBrokerConfig, 
+    def __init__(self, broker_config: iot_repository_broker.IotMqttBrokerConfig,
                  topics: Any, sqlite_db_path: str, logger: logging.Logger):
         """ Constructor.
 
@@ -341,7 +426,7 @@ class IotMessageRecorder(iot_handler_base.IotHandlerBase):
         else:
             self._mqtt_consumer.topics = [topics]
         self._sqlite_db_path = sqlite_db_path
-        self._recorder_id = f'Rec.{broker_config["broker_id"]}.{str(uuid.uuid4()).replace("-","")}'
+        self._recorder_id = f'Rec.{broker_config.broker_id}.{str(uuid.uuid4()).replace("-","")}'
 
     @property
     def device_id(self) -> str:
@@ -383,6 +468,10 @@ class IotMessageRecorder(iot_handler_base.IotHandlerBase):
                     conv_msg = iot_msg_input.InputHealth()
                     conv_msg.from_dict(msg_payload)
                     rec_msg = IotRecorderInputHealth(msg_base.msg_id, conv_msg)
+                elif msg_payload['class'] == 'SensorMsmt':
+                    conv_msg = iot_msg_sensor.SensorMsmt()
+                    conv_msg.from_dict(msg_payload)
+                    rec_msg = IotRecorderSensorMsg(msg_base.msg_id, conv_msg)
                 else:
                     rec_msg = IotRecorderGenericMsg(msg_base.msg_id, msg_payload)
             else:

@@ -15,7 +15,7 @@
 from datetime import datetime
 import wp_queueing
 
-class SensorMeasurement(wp_queueing.IConvertToDict):
+class SensorMsmt(wp_queueing.IConvertToDict):
     """ Class for grouping the result of a sensor measurement.
 
     Attributes:
@@ -35,12 +35,12 @@ class SensorMeasurement(wp_queueing.IConvertToDict):
             Measured value.
 
     Methods:
-        SensorMeasurement()
+        SensorMsmt()
             Constructor
         to_dict : dict
             Converts a sensor measurement object into a dictionary representation.
     """
-    def __init__(self, sensor_id, sensor_type, msmt_time: datetime = None):
+    def __init__(self, sensor_id = None, sensor_type = None, msmt_time: datetime = None):
         """ Constructor
 
         Parameters:
@@ -58,9 +58,9 @@ class SensorMeasurement(wp_queueing.IConvertToDict):
         else:
             self.msmt_time = msmt_time
         self.hw_value = 0
-        self.hw_voltage = 0
+        self.hw_voltage = 0.0
         self.msmt_unit = None
-        self.msmt_value = 0
+        self.msmt_value = 0.0
 
     def to_dict(self) -> dict:
         """ Converts a sensor measurement object into a dictionary representation.
@@ -69,7 +69,7 @@ class SensorMeasurement(wp_queueing.IConvertToDict):
             dict : dictionary representation of the object.
         """
         return {
-            'class': 'SensorMeasurement',
+            'class': 'SensorMsmt',
             'sensor_id': self.sensor_id,
             'sensor_type': self.sensor_type,
             'msmt_time': self.msmt_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
@@ -78,3 +78,31 @@ class SensorMeasurement(wp_queueing.IConvertToDict):
             'msmt_unit': self.msmt_unit,
             'msmt_value': self.msmt_value
         }
+
+    def from_dict(self, msg_dict: dict) -> None:
+        """ Converts a dictionary into a SensorMeasurement instance, if possible.
+
+        Parameters:
+            msg_dict : dict
+                Dictionary to be converted.
+        """
+        if not isinstance(msg_dict, dict):
+            raise TypeError('SensorMsmt.from_dict(): invalid parameter type "{}"'.format(type(msg_dict)))
+        mandatory_attr = ['class', 'sensor_type', 'sensor_id', 'msmt_time', 'hw_value', 'msmt_unit', 'msmt_value']
+        for attr in mandatory_attr:
+            if attr not in msg_dict:
+                raise ValueError('SensorMsmt.from_dict(): missing mandatory element "{}"'.format(attr))
+        if msg_dict['class'] != 'SensorMsmt':
+            raise ValueError('SensorMsmt.from_dict(): invalid dict class "{}"'.format(msg_dict['class']))
+        self.sensor_id = msg_dict['sensor_id']
+        self.sensor_type = msg_dict['sensor_type']
+        msmt_time = msg_dict['msmt_time']
+        if msmt_time.find('.') < 0:
+            self.msmt_time = datetime.strptime(msmt_time, "%Y-%m-%d %H:%M:%S")
+        else:
+            self.msmt_time = datetime.strptime(msmt_time, "%Y-%m-%d %H:%M:%S.%f")
+        self.hw_value = msg_dict['hw_value']
+        self.msmt_unit = msg_dict['msmt_unit']
+        self.msmt_value = msg_dict['msmt_value']
+        if 'hw_voltage' in msg_dict:
+            self.hw_voltage = msg_dict['hw_voltage']

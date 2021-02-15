@@ -18,7 +18,7 @@ import logging
 import wp_queueing
 import iot_handler_base
 import iot_msg_input
-import iot_sensor
+import iot_sensor_base
 
 
 class IotSensorHandler(iot_handler_base.IotHandlerBase):
@@ -31,10 +31,14 @@ class IotSensorHandler(iot_handler_base.IotHandlerBase):
             Unique identifier of the sensor.
         sensor_type : str
             Type of the sensor.
-        _sensor : iot_sensor.IotSensor
+        _sensor : iot_sensor_base.IotSensor
             Reference to the controlled IOT sensor element.
 
     Properties:
+        sensor_id : str
+            Getter for the unique identifier of the controlled sensor.
+        sensor_type : str
+            Getter for the type (model) of the controlled sensor.
         _output_topic: str
             Getter for the topic string to be used for publishing sensor measurements.
 
@@ -46,48 +50,52 @@ class IotSensorHandler(iot_handler_base.IotHandlerBase):
         message : None
             Handle an incoming message containing a hardware probe.
     """
-    # pylint: disable=too-many-instance-attributes
-    def __init__(self, sensor_config: dict, logger: logging.Logger):
+    def __init__(self, sensor: iot_sensor_base.IotSensor, logger: logging.Logger,
+                 mqtt_data: tuple, mqtt_input: tuple, mqtt_health: tuple = None,
+                 health_check_interval: int = 0):
         """ Constructor.
 
         Parameters:
-            config_dict : dict
-                Dictionary containing the configuration settings for the handler and the sensor.
+            sensor : iot_sensor_base.IotSensor
+                Sensor object to be controlled by the sensor handler.
             logger : logging.Logger
                 Logger to be used by the handler and the sensor.
+            mqtt_data : tuple
+                MQTT broker information (broker session and topic) for publishing measurement
+                messages.
+            mqtt_input : tuple
+                MQTT broker information (broker session and topic) for receiving input probe
+                messages from the associated hardware device.
+            mqtt_health : tuple, optional
+                MQTT broker information (broker session and topic) for publishing health check
+                messages.
         """
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
-        self.sensor_id = sensor_config['sensor_id']
-        self.sensor_type = sensor_config['sensor_type']
+        self._sensor = sensor
         self.logger = logger
         self.logger.debug(f'{mth_name}: sensor_id="{self.sensor_id}", sensor_type="{self.sensor_type}"')
+        super().__init__(1, health_check_interval if health_check_interval > 0 else 900,
+                         mqtt_data = mqtt_data, mqtt_input = mqtt_input, mqtt_health = mqtt_health)
+        if self.mqtt_input is not None:
+            self.mqtt_input[0].owner = self
+            self.mqtt_input[0].topics = [(self.mqtt_input[1], 0)]
 
-        data_topic = None
-        input_topic = None
-        health_topic = None
-        if 'data_topic' in sensor_config:
-            data_topic = sensor_config['data_topic']
-        if 'input_topic' in sensor_config:
-            input_topic = sensor_config['input_topic']
-        if 'health_topic' in sensor_config:
-            health_topic = sensor_config['health_topic']
+    @property
+    def sensor_id(self) -> str:
+        """ Getter for the unique identifier of the controlled sensor. """
+        return None if self._sensor is None else self._sensor.sensor_id
 
-        super().__init__(sensor_config['polling_interval'],
-                         min(sensor_config['polling_interval'] * 30, 300),
-                         data_topic = data_topic, input_topic = input_topic, health_topic = health_topic)
-
-        if self.sensor_type == 'KYES516':
-            self._sensor = iot_sensor.IotSensorHumKYES516(sensor_config, logger)
-        else:
-            self._sensor = None
+    @property
+    def sensor_type(self) -> str:
+        """ Getter for the type (model) of the controlled sensor. """
+        return None if self._sensor is None else self._sensor.sensor_type
 
     def polling_timer_event(self):
         """ Indicates that the polling timer has expired and the MQTT broker must be queried for new
             messages.
         """
         super().polling_timer_event()
-        if self.input_topic is not None and isinstance(self.input_topic, tuple):
-            self.input_topic[1].receive()
+        self.mqtt_input[0].receive()
 
     def message(self, msg: wp_queueing.QueueMessage) -> None:
         """ Handle an incoming message containing a hardware probe.
@@ -97,13 +105,13 @@ class IotSensorHandler(iot_handler_base.IotHandlerBase):
                 Message received from the message broker containing the digital input probe.
         """
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
-        self.logger.debug('{}: topic="{}", msg_id="{}"'.format(mth_name, msg.msg_topic, msg.msg_id))
-        if msg.msg_topic != self.input_topic[0]:
-            self.logger.debug(f'{mth_name}: unexpected topic "{msg.msg_topic}"; expected "{self.input_topic[0]}"')
+        self.logger.debug(f'{mth_name}: "{str(msg)}"')
+        if self.mqtt_data is None or self.mqtt_data[1] is None:
             return
-        if self.data_topic is None or self.data_topic[1] is None:
+        if msg.msg_topic != self.mqtt_input[1]:
+            self.logger.debug(f'{mth_name}: unexpected topic "{msg.msg_topic}"; expected "{self.mqtt_input[1]}"')
             return
-        probe = iot_msg_input.InputProbe("UNDEFINED", "UNDEFINED", None, None)
+        probe = iot_msg_input.InputProbe()
         try:
             probe.from_dict(msg.msg_payload)
         except TypeError as except_:
@@ -113,18 +121,17 @@ class IotSensorHandler(iot_handler_base.IotHandlerBase):
             self.logger.error(f'{mth_name}: {str(except_)}')
             return
         # If the probe is too old, we discard it.
-        tdelta = datetime.now() - probe.probe_time
-        probe_age = tdelta.days * 86400 + tdelta.seconds
-        if probe_age > 30:
+        probe_age = (datetime.now() - probe.probe_time).total_seconds()
+        if probe_age > 10:
             self.logger.warning('{}: topic="{}", msg_id="{}"'.format(mth_name, msg.msg_topic, msg.msg_id))
-            self.logger.warning('{}: probe age = {}, message discarded'.format(mth_name, probe_age.seconds))
+            self.logger.warning('{}: probe age = {:.0f} seconds > 10, message discarded'.format(mth_name, probe_age))
             return
         msmt = self._sensor.measure(probe)
         out_msg = wp_queueing.QueueMessage(self._output_topic)
         out_msg.msg_payload = msmt
-        self.data_topic[1].publish_single(msmt)
+        self.mqtt_data[0].publish_single(msmt)
 
     @property
     def _output_topic(self) -> str:
         """ Getter for the topic string to be used for publishing sensor measurements. """
-        return f'{self.data_topic[0]}/{self.sensor_id}'
+        return f'{self.mqtt_data[1]}/{self.sensor_id}'

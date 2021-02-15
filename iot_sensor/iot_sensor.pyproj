@@ -5,7 +5,7 @@
     <ProjectGuid>b41f4906-ce80-47ea-b69f-747fd0cac496</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>__init__.py</StartupFile>
-    <SearchPath>..\iot_base;..\iot_hardware</SearchPath>
+    <SearchPath>..\iot_base;..\iot_repository</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>iot_sensor</Name>
@@ -20,7 +20,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="iot_sensor.py" />
+    <Compile Include="iot_sensor_base.py" />
+    <Compile Include="iot_sensor_factory.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="iot_sensor_handler.py">
       <SubType>Code</SubType>
     </Compile>

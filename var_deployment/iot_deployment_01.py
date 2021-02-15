@@ -26,11 +26,12 @@ class IotDeployment01:
     def __init__(self, config_db_template: str, statistics_db_template: str = None,
                  logger_config_template: str = None, target_app_name: str = None):
         """ Constructor. """
+        self._output_path = "Output Files"
         self._config_db_path = "iot_env_01.sl3"
-        shutil.copyfile(config_db_template, self._config_db_path)
+        shutil.copyfile(config_db_template, f"{self._output_path}/{self._config_db_path}")
         if statistics_db_template is not None:
             self._stat_db_path = "iot_statistics.sl3"
-            shutil.copyfile(statistics_db_template, self._stat_db_path)
+            shutil.copyfile(statistics_db_template, f"{self._output_path}/{self._stat_db_path}")
         else:
             self._stat_db_path = None
         if logger_config_template is not None:
@@ -73,7 +74,7 @@ class IotDeployment01:
 
     def create_db_sensors(self) -> None:
         """ Creates an entry for the KEYS516 sensor (needed to calculate the active port list of the ADS1115). """
-        sensor_rows = [['PI-249.DUMMY.1', 'KYES516', 'PI-249.ADS1115.1', 0, 30,
+        sensor_rows = [['PI-249.KYES516.1', 'KYES516', 'PI-249.ADS1115.1', 0, 30,
                         'PI-250-1883', 'data/sensor', 'PI-250-1883', 'health/sensor', self._now()]]
         self._sensors = self._create_db_items(iot_repository_sensor.IotSensorConfig, sensor_rows)
 
@@ -88,7 +89,7 @@ class IotDeployment01:
     def _create_db_items(self, item_type: type, item_rows: list) -> list:
         """ Inserts items into the database. """
         res_list = []
-        with wp_repository.SQLiteRepository(item_type, self._config_db_path) as repository:
+        with wp_repository.SQLiteRepository(item_type, f"{self._output_path}/{self._config_db_path}") as repository:
             for row in item_rows:
                 db_item = item_type()
                 db_item.load_row(row)
@@ -100,17 +101,19 @@ class IotDeployment01:
         """ Creates the application config file. """
         if self._target_app_name is None:
             return
-        with open(f'{self._target_app_name}.config.json', "w") as config_fh:
+        with open(f'{self._output_path}/{self._target_app_name}.config.json', "w") as config_fh:
+            config_fh.write("{\n")
+            config_fh.write(f'"config_db_path": "{self._config_db_path}"')
+            if self._stat_db_path is not None:
+                config_fh.write(f',\n"statistics_db_path": "{self._stat_db_path}"')
+            if self._process_groups is None:
+                config_fh.write(',\n"process_groups": [0]')
+            else:
+                config_fh.write(f',\n"process_groups": {str(self._process_groups)}')
             if self._logger_config is not None:
                 self._logger_config = self._logger_config.replace('<rotating_file_name>',f'{self._target_app_name}.log')
-                config_fh.write(f'"logging": {self._logger_config}\n')
-            config_fh.write(f'"config_db_path": "{self._config_db_path}"\n')
-            if self._stat_db_path is not None:
-                config_fh.write(f'"statistics_db_path": "{self._stat_db_path}"\n')
-            if self._process_groups is None:
-                config_fh.write('"process_groups": [0]\n')
-            else:
-                config_fh.write(f'"process_groups": {str(self._process_groups)}')
+                config_fh.write(f',\n"logging": {self._logger_config}')
+            config_fh.write("\n}")
 
     @staticmethod
     def _now() -> str:

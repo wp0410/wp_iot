@@ -29,6 +29,9 @@ if iot_base_path not in sys.path:
 iot_hardware_path = f"{parent_dir}{DELIMITER}iot_hardware"
 if iot_hardware_path not in sys.path:
     sys.path.append(iot_hardware_path)
+iot_sensor_path = f"{parent_dir}{DELIMITER}iot_sensor"
+if iot_sensor_path not in sys.path:
+    sys.path.append(iot_sensor_path)
 iot_configuration_path = f"{parent_dir}{DELIMITER}iot_configuration"
 if iot_configuration_path not in sys.path:
     sys.path.append(iot_configuration_path)

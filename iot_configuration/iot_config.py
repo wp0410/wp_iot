@@ -27,13 +27,20 @@ class IotConfiguration:
     Properties:
         host_id : str
             Getter for the unique identification of the current IOT host.
+        host_ip : str
+            Getter for the IP address of the current IOT host.
+        last_change_date : str
+            Getter for the last change date of the host configuration in the repository.
+        process_group : int
+            Getter for the current process group.
         brokers : dict
             Getter for the configuration settings for all MQTT brokers defined in the IOT system.
-
-    Methods:
-        hardware_components : list
-            Retrieves configuration setting dictionaries for all hardware components that are assigned to the
-            current host and a specific process group.
+        hardware_components : dict
+            Retrieves configuration settings for all hardware components that are assigned to the
+            current host and the current process group.
+        sensors : dict
+            Retrieves configuration settings for all sensors that are assigned to the current host and the current
+            process group.
     """
     def __init__(self, host_ip_address: str, sqlite_db_path: str, process_group: int = 0):
         self._host = None
@@ -42,7 +49,7 @@ class IotConfiguration:
         with SQLiteRepository(iot_repository_host.IotHostConfig, self._sqlite_db_path) as host_repo:
             host_list = host_repo.select_where([("host_ip", "=", host_ip_address)])
         if len(host_list) == 0:
-            raise ValueError('host(ip_address="{}": no configuration data found'.format(self._host_ip))
+            raise ValueError('host(ip_address="{}": no configuration data found'.format(self.host_ip))
         self._host = host_list[0]
 
     @property
@@ -61,12 +68,14 @@ class IotConfiguration:
 
     @property
     def last_change_date(self) -> str:
+        """ Getter for the last change date of the host configuration in the repository. """
         if self._host is None:
             return None
         return self._host.store_date_str
 
     @property
     def process_group(self) -> int:
+        """ Getter for the current process group. """
         return self._process_group
 
     @property
@@ -90,22 +99,18 @@ class IotConfiguration:
 
     @property
     def hardware_components(self) -> dict:
-        """ Retrieves configuration setting dictionaries for all hardware components that are assigned to the
-            current host and a specific process group.
-
-        Parameters:
-            process_group : int
-                Process group to retrieve hardware components for.
+        """ Retrieves configuration settings for all hardware components that are assigned to the
+            current host and the current process group.
 
         Returns:
             dict
                 Dictionary containing the configuration setting for a hardware handler and its
                 associated hardware component. Dictionary format:
                 {
-                    'hw_elem_1': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>),
-                    'hw_elem_2': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>),
+                    'hw_elem_1.device_id': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>),
+                    'hw_elem_2.device_id': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>),
                     ...
-                    'hw_elem_N': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>) }
+                    'hw_elem_N'.device_id: tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>) }
         """
         with SQLiteRepository(iot_repository_host.IotHostAssignedComponent, self._sqlite_db_path) as comp_repo:
             db_assigned_comps = comp_repo.select_where(
@@ -126,3 +131,40 @@ class IotConfiguration:
                         active_ports.append(db_sensor.device_channel)
                     hw_components[db_hw_component.device_id] = (db_hw_component, active_ports)
         return hw_components
+
+    @property
+    def sensors(self) -> dict:
+        """ Retrieves configuration settings for all sensors that are assigned to the current host and the current
+            process group.
+
+        Returns:
+            dict
+                Dictionary containing the configuration settings for a sensor handler and its associated
+                IotSensor. Dictionary format:
+                {
+                    'sensor_1.sensor_id': <iot_repository_sensor.IotSensorConfig>,
+                    'sensor_2.sensor_id': <iot_repository_sensor.IotSensorConfig>,
+                    ...
+                    'sensor_N.sensor_id': <iot_repository_sensor.IotSensorConfig> }
+        """
+        with SQLiteRepository(iot_repository_host.IotHostAssignedComponent, self._sqlite_db_path) as comp_repo:
+            db_assigned_comps = comp_repo.select_where(
+                [("host_id", "=", self.host_id), ("process_group", "=", self.process_group)])
+        sensors = dict()
+        sensor_template = iot_repository_sensor.IotSensorConfig()
+        hw_template = iot_repository_hardware.IotHardwareConfig()
+        with SQLiteRepository(iot_repository_sensor.IotSensorConfig, self._sqlite_db_path) as sensor_repo:
+            with SQLiteRepository(iot_repository_hardware.IotHardwareConfig, self._sqlite_db_path) as hw_repo:
+                for db_assigned_comp in db_assigned_comps:
+                    sensor_template.sensor_id = db_assigned_comp.comp_id
+                    db_sensor = sensor_repo.select_by_key(sensor_template)
+                    if db_sensor is None:
+                        continue
+                    hw_template.device_id = db_sensor.device_id
+                    db_hw = hw_repo.select_by_key(hw_template)
+                    if db_hw is None:
+                        continue
+                    db_sensor.input_broker_id = db_hw.data_broker_id
+                    db_sensor.input_topic = db_hw.data_topic_full(db_sensor.device_channel)
+                    sensors[db_sensor.sensor_id] = db_sensor
+        return sensors

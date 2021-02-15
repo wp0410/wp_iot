@@ -57,6 +57,8 @@ class IotHardwareConfig(wp_repository.RepositoryElement):
     Methods:
         IotHardwareConfig()
             Constructor.
+        data_topic_full : str
+            Retrieves the fully expanded data topic name.
         __str__: str
             Converts an instance of the class to a string object.
     """
@@ -104,6 +106,18 @@ class IotHardwareConfig(wp_repository.RepositoryElement):
             store_date converted to a string.
         """
         return self.store_date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def data_topic_full(self, channel_no: int) -> str:
+        """ Retrieves the fully expanded data topic name.
+
+        Parameters:
+            channel_no : int
+                Channel number of the hardware device to subscribe to.
+
+        Returns:
+            The fully expanded topic name.
+        """
+        return f"{self.data_topic}/{self.device_id}/{channel_no}"
 
     def __str__(self) -> str:
         """ Converts an instance of the class to a string object. """
