@@ -2,14 +2,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>e0dce077-a89b-4e23-8a6d-7c7507629c04</ProjectGuid>
+    <ProjectGuid>f4957683-0ee5-4108-a4f4-a5be5b0c0b23</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>iot_deployment_01.py</StartupFile>
+    <StartupFile>deploy_pi249.py</StartupFile>
     <SearchPath>..\iot_repository</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>var_deployment</Name>
-    <RootNamespace>var_deployment</RootNamespace>
+    <Name>iot_var_deployment</Name>
+    <RootNamespace>iot_var_deployment</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,7 +20,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="iot_deployment_01.py" />
+    <Compile Include="deploy_pi249.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="deploy_pi250.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="iot_deploy.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".pylintrc" />

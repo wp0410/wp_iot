@@ -4,8 +4,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>dc0c2ad1-f31a-4580-8528-edd578c091fc</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test_iot_agent.py</StartupFile>
-    <SearchPath>..\iot_repository;..\iot_hardware;..\iot_base;..\iot_configuration;..\iot_runtime</SearchPath>
+    <StartupFile>test_iot_statistics_data.py</StartupFile>
+    <SearchPath>..\iot_repository;..\iot_hardware;..\iot_base;..\iot_configuration;..\iot_runtime;..\iot_recorder</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>tests</Name>
@@ -31,6 +31,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test_iot_repository.py" />
+    <Compile Include="test_iot_statistics_data.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

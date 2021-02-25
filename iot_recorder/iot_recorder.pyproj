@@ -21,12 +21,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="iot_msg_recorder.py" />
+    <Compile Include="iot_stat_msg.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include=".pylintrc" />
+    <Content Include="iot_rec.sl3" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

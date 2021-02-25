@@ -31,3 +31,8 @@ if iot_repository_path not in sys.path:
     sys.path.append(iot_repository_path)
 
 from iot_msg_recorder import IotMessageRecorder
+from iot_stat_msg import IotRecorderMsg
+from iot_stat_msg import IotRecorderGenericMsg
+from iot_stat_msg import IotRecorderInputProbe
+from iot_stat_msg import IotRecorderInputHealth
+from iot_stat_msg import IotRecorderSensorMsg
