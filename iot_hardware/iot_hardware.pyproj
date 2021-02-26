@@ -20,13 +20,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="adafruit_ads1x15\ads1115.py" />
-    <Compile Include="adafruit_ads1x15\analog_in.py" />
-    <Compile Include="adafruit_ads1x15\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="board.py" />
-    <Compile Include="busio.py" />
     <Compile Include="iot_hardware_device.py">
       <SubType>Code</SubType>
     </Compile>
@@ -35,11 +28,7 @@
     </Compile>
     <Compile Include="iot_hardware_input.py" />
     <Compile Include="iot_hardware_handler.py" />
-    <Compile Include="smbus2.py" />
     <Compile Include="__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="adafruit_ads1x15\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".pylintrc" />

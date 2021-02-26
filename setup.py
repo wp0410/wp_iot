@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh_readme:
 
 setuptools.setup(
     name = "wp_iot",
-    version = "0.0.dev16",
+    version = "0.1.0",
     author = "Walter Pachlinger",
     author_email = "walter.pachlinger@gmail.com",
     description = "Classes and scrips for building Raspberry Pi based IOT systems.",
@@ -15,7 +15,7 @@ setuptools.setup(
     packages = setuptools.find_packages(),
     classifiers = [
         "Programming Language :: Python :: 3",
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
         "Operating System :: OS Independent"
