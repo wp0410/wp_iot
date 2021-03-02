@@ -33,6 +33,8 @@ if iot_repository_path not in sys.path:
 from iot_hardware_device import IotHardwareDevice
 from iot_hardware_input import IotInputDevice
 from iot_hardware_input import DigitalInputADS1115
+from iot_hardware_output import IotPortOutputMCP23017
 from iot_hardware_handler import IotInputDeviceHandler
 from iot_hardware_handler import IotOutputDeviceHandler
+from iot_hardware_handler import IotOutputStateDeviceHandler
 from iot_hardware_factory import IotHardwareFactory

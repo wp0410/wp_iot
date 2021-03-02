@@ -26,4 +26,5 @@ if current_dir not in sys.path:
 from iot_handler_base import IotHandlerBase
 from iot_msg_input import InputProbe
 from iot_msg_input import InputHealth
+from iot_msg_output import OutputData
 from iot_msg_sensor import SensorMsmt

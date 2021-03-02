@@ -19,6 +19,7 @@ import iot_repository_hardware
 import iot_handler_base
 import iot_hardware_device
 import iot_hardware_input
+import iot_hardware_output
 import iot_hardware_handler
 
 class IotHardwareFactory:
@@ -55,6 +56,11 @@ class IotHardwareFactory:
                     hw_config.device_id, hw_config.i2c_bus_id, hw_config.i2c_bus_address, extra_info, logger)
             else:
                 new_device = None
+        elif hw_config.device_type.find('Output') >= 0:
+            # Create an output device
+            if hw_config.model == "MCP23017":
+                new_device = iot_hardware_output.IotPortOutputMCP23017(
+                    hw_config.device_id, hw_config.i2c_bus_id, hw_config.i2c_bus_address, extra_info, logger)
         else:
             new_device = None
         return new_device
@@ -105,7 +111,7 @@ class IotHardwareFactory:
             new_handler = iot_hardware_handler.IotInputDeviceHandler(device, logger, hw_config.polling_interval,
                                                                      mqtt_data = mqtt_data, mqtt_health = mqtt_health,
                                                                      health_check_interval = 15 * 60)
-        else:
+        elif hw_config.device_type.find('Output') >= 0:
             mqtt_input = None
             mqtt_health = None
             if hw_config.input_broker_id is not None:
@@ -120,8 +126,16 @@ class IotHardwareFactory:
                                                         broker_port = broker_config.broker_port,
                                                         logger = logger),
                                hw_config.health_topic)
-            new_handler = iot_hardware_handler.IotOutputDeviceHandler(device, logger, hw_config.polling_interval,
-                                                                      mqtt_input = mqtt_input,
-                                                                      mqtt_health = mqtt_health,
-                                                                      health_check_interval = 15 * 60)
+            if device.device_type == 'PortOutput':
+                new_handler = iot_hardware_handler.IotOutputDeviceHandler(device, logger, hw_config.polling_interval,
+                                                                            mqtt_input = mqtt_input,
+                                                                            mqtt_health = mqtt_health,
+                                                                            health_check_interval = 15 * 60)
+            else:
+                new_handler = iot_hardware_handler.IotOutputStateDeviceHandler(device, logger,
+                                                                               mqtt_input = mqtt_input,
+                                                                               mqtt_health = mqtt_health,
+                                                                               health_check_interval = 15 * 60)
+        else:
+            new_handler = None
         return new_handler

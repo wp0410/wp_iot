@@ -114,7 +114,7 @@ class DigitalInputADS1115(IotInputDevice):
         self.i2c_bus_address = i2c_bus_address
         self.active_ports = active_ports
         self.num_probe_list = [0, 0, 0, 0]
-        self.logger.debug('{}: Initialized Hardware Element:'.format(mth_name))
+        self.logger.debug('{}: Initialized Hardware Device:'.format(mth_name))
         self.logger.debug('   deviceId:    {}'.format(self.device_id))
         self.logger.debug('   bus_id:      {}'.format(self.i2c_bus_id))
         self.logger.debug('   bus_address: {}'.format(self.i2c_bus_address))

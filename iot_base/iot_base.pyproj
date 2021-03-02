@@ -23,6 +23,9 @@
   <ItemGroup>
     <Compile Include="iot_handler_base.py" />
     <Compile Include="iot_msg_input.py" />
+    <Compile Include="iot_msg_output.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="iot_msg_sensor.py">
       <SubType>Code</SubType>
     </Compile>

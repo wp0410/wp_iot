@@ -28,6 +28,9 @@
     </Compile>
     <Compile Include="iot_hardware_input.py" />
     <Compile Include="iot_hardware_handler.py" />
+    <Compile Include="iot_hardware_output.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
