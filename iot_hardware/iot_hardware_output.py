@@ -17,12 +17,12 @@ from datetime import datetime
 import logging
 import smbus2
 
-class OutputPortState:
+class OutputPinState:
     """ State of an output port on a IotPortOutput device.
 
     Attributes:
-        port_number : int
-            Port number of the output port (0 ... 7).
+        pin_number : int
+            Number of the output pin.
         current_val : int
             Current value of the output port (0, 1).
         last_state_change : datetime
@@ -31,23 +31,23 @@ class OutputPortState:
             For states (0 and 1), total time of port being in the respective state.
 
     Methods:
-        OutputPortState : Constructor
+        OutputPinState : Constructor
     """
-    def __init__(self, port_number: int, init_val: int):
+    def __init__(self, pin_number: int, init_val: int):
         """ Constructor.
 
         Parameters:
-            port_number : int
-                Port number of the output port (0 ... 7).
+            pin_number : int
+                Number of the output pin.
             init_val : int
                 Initial value of the output port (0, 1).
         """
-        self.port_number = port_number
+        self.pin_number = pin_number
         self.current_val = init_val
         self.last_state_change = None
         self.total_state_time = [0, 0]
 
-class IotPortOutputMCP23017:
+class IotPinOutputMCP23017:
     """ MCP23017 port extender as an output device (selected ports can be switched on and off).
 
     Attributes:
@@ -70,23 +70,23 @@ class IotPortOutputMCP23017:
         IotPortOutputMCP23017 : None
             Constructor
         switch_to_state : int
-            Changes the state of an output port to a given target state. Has no effect if the port is already in
+            Changes the state of an output pin to a given target state. Has no effect if the port is already in
             this state.
         switch : int
-            Changes the state of an output port. If the port is currently ON, it will be switched OFF and
+            Changes the state of an output pin. If the port is currently ON, it will be switched OFF and
             vice versa.
         switch_on : int
-            Changes the state of an output port to ON. Has no effect if the port is already ON.
+            Changes the state of an output pin to ON. Has no effect if the port is already ON.
         switch_off : int
-            Changes the state of an output port to OFF. Has no effect if the port is already OFF.
+            Changes the state of an output pin to OFF. Has no effect if the port is already OFF.
         _calc_setup_mask : int
             Calculates the value to be written to a SETUP register to define the used ports as
             output ports.
         _calc_output_mask : int
             Calculates the value to be written to an OUTPUT register to set the requested states
-            of the used output ports.
+            of the used output pins.
         _initialize_output_ports : None
-            Setup and initialize the used output ports.
+            Setup and initialize the used output pins.
         _write_port_states : None
             Write the current states of all ports on a port register (A, B).
     """
@@ -102,7 +102,7 @@ class IotPortOutputMCP23017:
     }
 
     def __init__(self, device_id: str, i2c_bus_id: int, i2c_bus_address: int,
-                 output_ports: list, logger: logging.Logger):
+                 output_pins: list, logger: logging.Logger):
         """ Constructor.
 
         Parameters:
@@ -112,8 +112,9 @@ class IotPortOutputMCP23017:
                 Number of the I2C bus to which the device is connected.
             i2c_bus_address : int
                 Address of the hardware device on the I2C bus.
-            output_ports : list
-                List of ports to be defined as output ports.
+            output_pins : list
+                List of tuples (pin, initval) where "pin" is the pin number of the output port and "initval" is
+                the initial status value of this port.
             logger : logging.Logger
                 Logger to be used.
         """
@@ -130,10 +131,10 @@ class IotPortOutputMCP23017:
         self.logger.debug(f'   deviceType: "{self.device_type}"')
         self.logger.debug(f'   model:      "{self.model}"')
         self.logger.debug(f'   busAddress: "{self.i2c_bus_address}"')
-        for out_port in output_ports:
-            port, init_value = out_port
+        for out_pin in output_pins:
+            port, init_value = out_pin
             register = port[:1].upper()
-            self._port_states[register][port[1:]] = OutputPortState(int(port[1:]), int(init_value))
+            self._port_states[register][port[1:]] = OutputPinState(int(port[1:]), int(init_value))
         self._initialize_output_ports()
 
     @staticmethod

@@ -38,8 +38,6 @@ class OutputData(wp_queueing.IConvertToDict):
             Converts the output data message to a dictionary.
         from_dict : None
             Converts a dictionary to an OutputData instance, if possible.
-        _normalize_state_action : tuple
-            Converts the action and output data to the requried tuple format.
     """
     def __init__(self, component_id: str = "", component_type: str = "", output_port: str = "",
                  output_time: datetime = None, output_data: Any = None):
@@ -61,18 +59,8 @@ class OutputData(wp_queueing.IConvertToDict):
             'component_id': self.component_id,
             'output_time': self.output_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
             'output_port': self.output_port,
-            'output' : str(self._normalize_data())
+            'output_data' : str(self.output_data)
         }
-
-    def _normalize_data(self) -> tuple:
-        """ Converts the action and output data to the requried tuple format.
-
-        Returns:
-            Action and output data as tuple.
-        """
-        if isinstance(self.output_data, tuple):
-            return self.output_data
-        return (self.output_data, None)
 
     def from_dict(self, msg_dict: dict) -> None:
         """ Converts a dictionary to an OutputState instance, if possible.
@@ -83,7 +71,7 @@ class OutputData(wp_queueing.IConvertToDict):
         """
         if not isinstance(msg_dict, dict):
             raise TypeError(f'OutputData.from_dict(): invalid parameter type "{type(msg_dict)}"')
-        mandatory_attr = ['class', 'component_type', 'component_id', 'output_time', 'output_port', 'output_data']
+        mandatory_attr = ['class', 'component_type', 'component_id', 'output_time', 'output_data']
         for attr in mandatory_attr:
             if attr not in msg_dict:
                 raise ValueError(f'OutputData.from_dict(): missing mandatory element "{attr}"')
@@ -96,4 +84,5 @@ class OutputData(wp_queueing.IConvertToDict):
             self.output_time = datetime.strptime(st_time, "%Y-%m-%d %H:%M:%S")
         else:
             self.output_time = datetime.strptime(st_time, "%Y-%m-%d %H:%M:%S.f")
+        self.output_port = None if 'output_port' not in msg_dict else msg_dict['output_port']
         self.output_data = msg_dict['output_data']

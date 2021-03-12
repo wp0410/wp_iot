@@ -33,14 +33,12 @@ class IotAgent:
         IotAgent:
             Constructor.
     """
-    def __init__(self, iot_handler: iot_handler_base.IotHandlerBase, logger: logging.Logger = None):
+    def __init__(self, iot_handler: iot_handler_base.IotHandlerBase, logger: logging.Logger):
         """ Constructor.
         """
         self._thread = None
         self._stop_event = None
         self._handler = iot_handler
-        if logger is None:
-            self._logger = logging.getLogger(f'IOT.{self._handler.device_id}.{self._handler.device_type}')
         self._logger = logger
         self._agent_id = f'A.{self._handler.device_id}.{str(uuid.uuid4()).replace("-","")}'
 

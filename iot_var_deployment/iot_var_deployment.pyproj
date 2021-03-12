@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f4957683-0ee5-4108-a4f4-a5be5b0c0b23</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>deploy_pi249.py</StartupFile>
+    <StartupFile>deploy.py</StartupFile>
     <SearchPath>..\iot_repository</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -20,6 +20,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="deploy.py" />
     <Compile Include="deploy_pi249.py">
       <SubType>Code</SubType>
     </Compile>

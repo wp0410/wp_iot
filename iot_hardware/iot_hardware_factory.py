@@ -59,7 +59,7 @@ class IotHardwareFactory:
         elif hw_config.device_type.find('Output') >= 0:
             # Create an output device
             if hw_config.model == "MCP23017":
-                new_device = iot_hardware_output.IotPortOutputMCP23017(
+                new_device = iot_hardware_output.IotPinOutputMCP23017(
                     hw_config.device_id, hw_config.i2c_bus_id, hw_config.i2c_bus_address, extra_info, logger)
         else:
             new_device = None
@@ -132,7 +132,7 @@ class IotHardwareFactory:
                                                                             mqtt_health = mqtt_health,
                                                                             health_check_interval = 15 * 60)
             else:
-                new_handler = iot_hardware_handler.IotOutputStateDeviceHandler(device, logger,
+                new_handler = iot_hardware_handler.IotOutputPinDeviceHandler(device, logger,
                                                                                mqtt_input = mqtt_input,
                                                                                mqtt_health = mqtt_health,
                                                                                health_check_interval = 15 * 60)

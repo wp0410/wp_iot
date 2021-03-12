@@ -12,10 +12,10 @@
     either express or implied. See the LICENSE for the specific language governing permissions
     and limitations under the LICENSE.
 """
+from typing import Any
 import inspect
 import logging
 import json
-import uuid
 from datetime import datetime
 import wp_queueing
 import iot_handler_base
@@ -23,6 +23,7 @@ import iot_msg_input
 import iot_msg_output
 import iot_hardware_device
 import iot_hardware_input
+
 
 class IotOutputDeviceHandler(iot_handler_base.IotHandlerBase):
     """ Handler for an output hardware device.
@@ -42,7 +43,7 @@ class IotOutputDeviceHandler(iot_handler_base.IotHandlerBase):
             Getter for the device model of the controlled input device.
 
     Methods:
-        InputDeviceHandler
+        IotOutputDeviceHandler
             Constructor.
         polling_timer_event : None
             Indicates that the polling timer has expired and the MQTT broker must be queried for new
@@ -102,9 +103,9 @@ class IotOutputDeviceHandler(iot_handler_base.IotHandlerBase):
         self.logger.debug(f'{mth_name}: "{str(msg)}"')
         if self._device is None:
             return
-        if msg.msg_topic != self.mqtt_input[1]:
-            self.logger.debug(f'{mth_name}: unexpected topic "{msg.msg_topic}"; expected "{self.mqtt_input[1]}"')
-            return
+        # if msg.msg_topic != self.mqtt_input[1]:
+        #     self.logger.debug(f'{mth_name}: unexpected topic "{msg.msg_topic}"; expected "{self.mqtt_input[1]}"')
+        #     return
         output_msg = iot_msg_output.OutputData()
         try:
             output_msg.from_dict(msg.msg_payload)
@@ -122,19 +123,19 @@ class IotOutputDeviceHandler(iot_handler_base.IotHandlerBase):
             return
         self.process_output(output_msg.output_port, output_msg.output_data)
 
-    def process_output(self, output_port: str, output_data: tuple):
+    def process_output(self, output_port: str, output_data: Any):
         """ Process the data associated with the received output message. This will output the received
             data according to the type of output.
 
         Parameters:
             output_port : str
                 Output port to send the output data to.
-            output_data : tuple
+            output_data : Any
                 The data to send to the output device.
         """
 
 
-class IotOutputStateDeviceHandler(IotOutputDeviceHandler):
+class IotOutputPinDeviceHandler(IotOutputDeviceHandler):
     """ Handler for an output hardware device allowing for switching dedicated ports on and off.
 
     Attributes:
@@ -146,8 +147,6 @@ class IotOutputStateDeviceHandler(IotOutputDeviceHandler):
     Methods:
         IotOutputStateDeviceHandler:
             Constructor.
-        polling_timer_event : None
-            Method called by the super() handler when the polling timer expires.
         process_output : None
             Method called when a message from the MQTT broker is received, to process the
             requested output operation.
@@ -156,49 +155,24 @@ class IotOutputStateDeviceHandler(IotOutputDeviceHandler):
                  mqtt_input: tuple, mqtt_health: tuple = None, health_check_interval: int = 0):
         """ Constructor. """
         super().__init__(device, logger, 1, mqtt_input, mqtt_health, health_check_interval)
-        self._last_timer_event = datetime.now()
-        self._output_timers = dict()
 
-    def polling_timer_event(self):
-        """ Method called by the super() handler when the polling timer expires.
-        """
-        super().polling_timer_event()
-        timer_rundown = int((datetime.now() - self._last_timer_event).total_seconds())
-        self._last_timer_event = datetime.now()
-        exp_timers = []
-        for output_timer in self._output_timers:
-            self._output_timers[output_timer]['timer'] -= timer_rundown
-            if self._output_timers[output_timer]['timer'] <= 0:
-                self.process_output(self._output_timers[output_timer]['port'],
-                                    self._output_timers[output_timer]['data'])
-                exp_timers.append(output_timer)
-        for output_timer in exp_timers:
-            self._output_timers.pop(output_timer)
-
-    def process_output(self, output_port, output_data):
-        """ Method called when a message from the MQTT broker is received, to process the
-            requested output operation.
+    def process_output(self, output_port: str, output_data: Any):
+        """ Process the data associated with the received output message. This will output the received
+            data according to the type of output.
 
         Parameters:
             output_port : str
-                Identification of the port to be used for the output operation.
-            output_data : tuple
-                Details of the state change for output.
+                Output port to send the output data to.
+            output_data : Any
+                The data to send to the output device.
         """
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         super().process_output(output_port, output_data)
         if self._device is None:
             return
-        target_state = int(output_data[0])
-        target_dura = None if output_data[1] is None else int(output_data[1])
+        target_state = int(output_data)
         self.logger.debug(f'{mth_name}: port="{output_port}", switch_to={target_state}')
         self._device.switch_to_state(output_port, target_state)
-        if target_dura is not None:
-            self.logger.debug(f'{mth_name}: port="{output_port}", startet timer, duration={target_dura} secs')
-            self._output_timers[str(uuid.uuid4())] = {'timer': target_dura,
-                                                      'port': output_port,
-                                                      'data': ((target_state + 1) % 2, None)}
-
 
 
 class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):

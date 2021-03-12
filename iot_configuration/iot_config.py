@@ -133,6 +133,33 @@ class IotConfiguration:
         return hw_components
 
     @property
+    def all_hardware_components(self) -> dict:
+        """ Retrieves configuration settings for all hardware components defined in the configuration
+            database.
+
+        Returns:
+            dict
+                Dictionary containing the configuration setting the defined hardware component.
+                Dictionary format:
+                {
+                    'hw_elem_1.device_id': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>),
+                    'hw_elem_2.device_id': tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>),
+                    ...
+                    'hw_elem_N'.device_id: tuple(<iot_repository_hardware.IotHardwareConfig>, <extra_info>) }
+        """
+        hw_components = dict()
+        with SQLiteRepository(iot_repository_hardware.IotHardwareConfig, self._sqlite_db_path) as hw_repo:
+            hw_comp_list = hw_repo.select_all()
+        with SQLiteRepository(iot_repository_sensor.IotSensorConfig, self._sqlite_db_path) as sensor_repo:
+            for db_hw_component in hw_comp_list:
+                db_sensors = sensor_repo.select_where([("device_id", "=", db_hw_component.device_id)])
+                active_ports = []
+                for db_sensor in db_sensors:
+                    active_ports.append(db_sensor.device_channel)
+                hw_components[db_hw_component.device_id] = (db_hw_component, active_ports)
+        return hw_components
+
+    @property
     def sensors(self) -> dict:
         """ Retrieves configuration settings for all sensors that are assigned to the current host and the current
             process group.

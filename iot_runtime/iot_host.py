@@ -14,11 +14,14 @@
 """
 import socket
 import logging
+import inspect
 import iot_config
 import iot_hardware_factory
 import iot_sensor_factory
 import iot_recorder
 import iot_agent
+
+# pylint: disable=logging-fstring-interpolation
 
 class IotHost:
     """ Initiated once for every process group per host where IOT components are deployed.
@@ -70,6 +73,7 @@ class IotHost:
                       socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
         self._config = iot_config.IotConfiguration(ip_address, sqlite_db_path, process_group)
         self._agents = dict()
+        self._logger = logging.getLogger(f'IOT.HOST.{process_group}')
 
     def __del__(self):
         """ Destructor. """
@@ -87,22 +91,27 @@ class IotHost:
             recorder_db_path : str
                 Full path name of the SQLite database to store the recorded messages.
         """
+        # pylint: disable=too-many-locals
+        mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         if self.data_recording_started:
+            self._logger.debug(f'{mth_name}: data recording already started')
             return
         brokers = self._config.brokers
         recorder_config = dict()
         for broker_id in brokers:
             recorder_config[broker_id] = []
-        hw_devices = self._config.hardware_components
+        hw_devices = self._config.all_hardware_components
         for device_id in hw_devices:
             device_conf = hw_devices[device_id][0]
             if device_conf.data_topic is not None and len(device_conf.data_topic.strip()) > 0:
                 recorder_config[device_conf.data_broker_id].append(f'{device_conf.data_topic}/#')
+                self._logger.debug(f'{mth_name}: add topic "{device_conf.data_topic}/#"')
         sensors = self._config.sensors
         for sensor_id in sensors:
             sensor_conf = sensors[sensor_id]
             if sensor_conf.data_topic is not None and len(sensor_conf.data_topic.strip()) > 0:
                 recorder_config[sensor_conf.data_broker_id].append(f'{sensor_conf.data_topic}/#')
+                self._logger.debug(f'{mth_name}: add topic "{sensor_conf.data_topic}/#"')
         recorder_agents = []
         for broker_id in recorder_config:
             if len(recorder_config[broker_id]) > 0:
@@ -180,10 +189,10 @@ class IotHost:
         """ Starts the agent threads for all IOT components attached to the host, belonging to the
             correct process group. """
         self.start_hardware_agents()
-        self.start_sensor_agents()
+        # self.start_sensor_agents()
 
     def stop_agents(self) -> None:
         """ Stops all currently running agent threads. """
         self.stop_hardware_agents()
-        self.stop_sensor_agents()
+        # self.stop_sensor_agents()
         self.stop_data_recording()

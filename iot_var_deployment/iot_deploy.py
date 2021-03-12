@@ -27,12 +27,13 @@ class IotDeployment:
     def __init__(self, target_app_name: str, target_host: str, output_path: str = None):
         """ Constructor. """
         self._target_app_name = target_app_name
-        self._output_path = output_path if output_path is not None else f"{target_app_name}.{target_host}.dpl"
+        # self._output_path = output_path if output_path is not None else f"{target_app_name}.{target_host}.dpl"
+        self._output_path = output_path if output_path is not None else f"{target_app_name}.dpl"
         if not os.path.exists(self._output_path):
             os.mkdir(self._output_path)
         self._target_host = target_host
-        self._config_db_name = f"iot_env_{self._target_host}.sl3"
-        self._stat_db_name = f"iot_rec_{self._target_host}.sl3"
+        self._config_db_name = f"{target_app_name}.config.sl3"
+        self._stat_db_name = f"{target_app_name}.recorder.{self._target_host}.sl3"
         self._host = None
         self._devices = []
         self._sensors = []
@@ -105,7 +106,7 @@ class IotDeployment:
 
     def create_config_file(self, logger_config_template: str = None) -> None:
         """ Creates the application config file. """
-        with open(f"{self._output_path}/{self._target_app_name}.config.json", "w") as config_fh:
+        with open(f"{self._output_path}/{self._target_app_name}.{self._target_host}.config.json", "w") as config_fh:
             config_fh.write("{\n")
             config_fh.write(f'"config_db_path": "{self._config_db_name}"')
             if os.path.exists(self._stat_db_path):
