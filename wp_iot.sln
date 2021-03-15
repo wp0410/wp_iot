@@ -28,6 +28,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "iot_recorder", "iot_recorde
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "iot_var_deployment", "iot_var_deployment\iot_var_deployment.pyproj", "{F4957683-0EE5-4108-A4F4-A5BE5B0C0B23}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "iot_actor", "iot_actor\iot_actor.pyproj", "{3B299152-A99F-4B87-83D2-8A732FE2BFB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,8 @@ Global
 		{D0ED2214-9C86-4D5F-8E65-A492EEBF0E50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4957683-0EE5-4108-A4F4-A5BE5B0C0B23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F4957683-0EE5-4108-A4F4-A5BE5B0C0B23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B299152-A99F-4B87-83D2-8A732FE2BFB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B299152-A99F-4B87-83D2-8A732FE2BFB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

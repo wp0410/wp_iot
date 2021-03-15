@@ -73,7 +73,7 @@ class IotSensorHandler(iot_handler_base.IotHandlerBase):
         mth_name = "{}.{}()".format(self.__class__.__name__, inspect.currentframe().f_code.co_name)
         self._sensor = sensor
         self.logger = logger
-        self.logger.debug(f'{mth_name}: sensor_id="{self.sensor_id}", sensor_type="{self.sensor_type}"')
+        self.logger.debug(f'{mth_name}: sensor_id="{self.element_id}", sensor_type="{self.element_type}"')
         super().__init__(1, health_check_interval if health_check_interval > 0 else 900,
                          mqtt_data = mqtt_data, mqtt_input = mqtt_input, mqtt_health = mqtt_health)
         if self.mqtt_input is not None:
@@ -81,14 +81,19 @@ class IotSensorHandler(iot_handler_base.IotHandlerBase):
             self.mqtt_input[0].topics = [(self.mqtt_input[1], 0)]
 
     @property
-    def sensor_id(self) -> str:
+    def element_id(self) -> str:
         """ Getter for the unique identifier of the controlled sensor. """
         return None if self._sensor is None else self._sensor.sensor_id
 
     @property
-    def sensor_type(self) -> str:
+    def element_type(self) -> str:
         """ Getter for the type (model) of the controlled sensor. """
         return None if self._sensor is None else self._sensor.sensor_type
+
+    @property
+    def element_model(self) -> str:
+        """ Getter for the model of the controlled sensor. """
+        return None if self._sensor is None else self._sensor.model
 
     def polling_timer_event(self):
         """ Indicates that the polling timer has expired and the MQTT broker must be queried for new
@@ -134,4 +139,4 @@ class IotSensorHandler(iot_handler_base.IotHandlerBase):
     @property
     def _output_topic(self) -> str:
         """ Getter for the topic string to be used for publishing sensor measurements. """
-        return f'{self.mqtt_data[1]}/{self.sensor_id}'
+        return f'{self.mqtt_data[1]}/{self.element_id}'

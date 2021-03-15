@@ -40,7 +40,7 @@ class IotAgent:
         self._stop_event = None
         self._handler = iot_handler
         self._logger = logger
-        self._agent_id = f'A.{self._handler.device_id}.{str(uuid.uuid4()).replace("-","")}'
+        self._agent_id = f'A.{self._handler.element_id}.{str(uuid.uuid4()).replace("-","")}'
 
     @property
     def agent_id(self) -> str:

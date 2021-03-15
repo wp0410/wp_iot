@@ -58,28 +58,28 @@ class IotOutputDeviceHandler(iot_handler_base.IotHandlerBase):
         self._device = device
         self.logger = logger
         self.logger.debug('{}: device_id="{}", device_type="{}", model="{}"'.format(
-            mth_name, self.device_id, self.device_type, self.device_model))
+            mth_name, self.element_id, self.element_type, self.element_model))
         super().__init__(polling_interval, health_check_interval, mqtt_input = mqtt_input, mqtt_health = mqtt_health)
         if self.mqtt_input is not None:
             self.mqtt_input[0].owner = self
             self.mqtt_input[0].topics = [(self.mqtt_input[1], 0)]
 
     @property
-    def device_id(self) -> str:
+    def element_id(self) -> str:
         """ Getter for the unique identifier of the controlled input device. """
         if self._device is None:
             return None
         return self._device.device_id
 
     @property
-    def device_type(self) -> str:
+    def element_type(self) -> str:
         """ Getter for the device type of the controlled input device. """
         if self._device is None:
             return None
         return self._device.device_type
 
     @property
-    def device_model(self) -> str:
+    def element_model(self) -> str:
         """ Getter for the device model of the controlled input device. """
         if self._device is None:
             return None
@@ -221,25 +221,25 @@ class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
         self._device = device
         self.logger = logger
         self.logger.debug('{}: device_id="{}", device_type="{}", model="{}"'.format(
-            mth_name, self.device_id, self.device_type, self.device_model))
+            mth_name, self.element_id, self.element_type, self.element_model))
         super().__init__(polling_interval, health_check_interval, mqtt_data = mqtt_data, mqtt_health = mqtt_health)
 
     @property
-    def device_id(self) -> str:
+    def element_id(self) -> str:
         """ Getter for the unique identifier of the controlled input device. """
         if self._device is None:
             return None
         return self._device.device_id
 
     @property
-    def device_type(self) -> str:
+    def element_type(self) -> str:
         """ Getter for the device type of the controlled input device. """
         if self._device is None:
             return None
         return self._device.device_type
 
     @property
-    def device_model(self) -> str:
+    def element_model(self) -> str:
         """ Getter for the device model of the controlled input device. """
         if self._device is None:
             return None
@@ -254,10 +254,10 @@ class IotInputDeviceHandler(iot_handler_base.IotHandlerBase):
         Returns:
             str : MQTT topic.
         """
-        return "{}/{}/{}".format(self.mqtt_data[1], self.device_id, probe.channel_no)
+        return "{}/{}/{}".format(self.mqtt_data[1], self.element_id, probe.channel_no)
 
     def _health_topic(self) -> str:
-        return "{}/{}".format(self.mqtt_health[1], self.device_id)
+        return "{}/{}".format(self.mqtt_health[1], self.element_id)
 
     def polling_timer_event(self) -> None:
         """ Indicates that the polling timer has expired and the underlying device must be probed.

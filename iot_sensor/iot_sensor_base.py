@@ -23,10 +23,12 @@ class IotSensor:
     Attributes:
         _logger : logging.Logger
             Logger to be used.
-        _sensor_id : str
+        sensor_id : str
             Unique identification of the sensor.
-        _sensor_type : str
+        sensor_type : str
             Type of the sensor.
+        model : str
+            Model of the sensor. Defaults to sensor_type.
         _last_msmt_time : datetime
             Timestamp of last measurement.
         _last_msmt_value : float
@@ -58,6 +60,7 @@ class IotSensor:
         self._logger = logger
         self.sensor_id = sensor_id
         self.sensor_type = sensor_type
+        self.model = sensor_type
         self._last_msmt_time = None
         self._last_msmt_value = None
         self.msmt_unit = None

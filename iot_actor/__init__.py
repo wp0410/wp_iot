@@ -22,10 +22,12 @@ else:
 current_dir = __file__[:__file__.rfind(DELIMITER) - len(__file__)]
 if current_dir not in sys.path:
     sys.path.append(current_dir)
+parent_dir = current_dir[:current_dir.rfind(DELIMITER)]
+iot_base_path = f"{parent_dir}{DELIMITER}iot_base"
+if iot_base_path not in sys.path:
+    sys.path.append(iot_base_path)
 
-from iot_handler_base import IotHandlerBase
-from iot_msg_input import InputProbe
-from iot_msg_input import InputHealth
-from iot_msg_output import OutputData
-from iot_msg_sensor import SensorMsmt
-from iot_msg_actor import ActorCommand
+from iot_actor_base import IotActor
+from iot_actor_base import IotSwitchActor
+from iot_actor_relais import IotActorRelais
+from iot_actor_handler import IotActorHandler

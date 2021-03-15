@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh_readme:
 
 setuptools.setup(
     name = "wp_iot",
-    version = "0.1.dev2",
+    version = "0.1.dev3",
     author = "Walter Pachlinger",
     author_email = "walter.pachlinger@gmail.com",
     description = "Classes and scrips for building Raspberry Pi based IOT systems.",
